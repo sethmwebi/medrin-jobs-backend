@@ -1,5 +1,5 @@
 /** @format */
-import env from "../util/validateEnv";
+import env from "../utils/validateEnv";
 import "dotenv/config";
 import mongoose from "mongoose";
 

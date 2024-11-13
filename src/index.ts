@@ -1,5 +1,5 @@
 /** @format */
-import env from "./utils/validateEnv";
+// import env from "./utils/validateEnv";
 import "dotenv/config";
 import { connectMongoDB } from "./config/database";
 import express from "express";
@@ -24,8 +24,7 @@ export const ATLAS_DATA_API_URL = `https://data.mongodb-api.com/i4huirbguwejgiw/
 export const USER_SEARCH_INDEX_NAME = "location-search";
 export const USER_AUTOCOMPLETE_INDEX_NAME = "location_autocomplete";
 
-console.log(ATLAS_SEARCH_INDEX_API_URL);
-console.log(ATLAS_DATA_API_URL);
+
 export const app = express();
 app.use(validateJob);
 app.use(express.json());
