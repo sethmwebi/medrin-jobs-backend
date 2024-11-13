@@ -1,51 +1,107 @@
-datasource postgresql {
+
+datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
+generator client {
+  provider = "prisma-client-js"
+}
+
 model User {
-  id            Int           @id @default(autoincrement())
-  username      String        @unique
-  email         String?
-  password_hash String
-  role          Role          @relation(fields: [role_id], references: [id])
-  role_id       Int
-  profile       Json?
-  applications  Application[]
-  payments      Payment[]
+  id             String          @id @default(cuid())
+  name           String?
+  email          String          @unique
+  emailVerified  DateTime?
+  image          String?
+  password_hash  String
+  role           Role            @relation(fields: [role_id], references: [id])
+  role_id        String
+  profile        Json?
+  applications   Application[]
+  payments       Payment[]
+  accounts       Account[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("users")
 }
 
 model Role {
-  id          Int     @id @default(autoincrement())
+  id          String   @id @default(cuid())
   role_name   String
   description String?
   users       User[]
+
+  @@map("roles")
 }
 
 model Application {
-  id           Int                 @id @default(autoincrement())
-  user_id      Int
+  id           String              @id @default(cuid())
+  user_id      String
   user         User                @relation(fields: [user_id], references: [id])
-  job_id       Int
+  job_id       String
   cover_letter String?
   resume_url   String?
   status       String
   statuses     ApplicationStatus[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("applications")
 }
 
 model ApplicationStatus {
-  id             Int         @id @default(autoincrement())
-  application_id Int
-  application    Application @relation(fields: [application_id], references: [id])
+  id             String         @id @default(cuid())
+  application_id String
+  application    Application    @relation(fields: [application_id], references: [id])
   status         String
   updated_at     DateTime
+
+  @@map("application_statuses")
 }
 
 model Payment {
-  id             Int    @id @default(autoincrement())
-  user_id        Int
-  user           User   @relation(fields: [user_id], references: [id])
+  id             String   @id @default(cuid())
+  user_id        String
+  user           User     @relation(fields: [user_id], references: [id])
   amount         Float
   payment_method String
   status         String
+
+  @@map("payments")
 }
+
+model Account {
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model VerificationToken {
+  identifier String
+  token      String
+  expires    DateTime
+
+  @@id([identifier, token])
+  @@map("verification_tokens")
+}
+
