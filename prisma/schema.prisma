@@ -1,14 +1,51 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
-generator client {
-  provider = "prisma-client-js"
-}
-
-datasource db {
+datasource postgresql {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+model User {
+  id            Int           @id @default(autoincrement())
+  username      String        @unique
+  email         String?
+  password_hash String
+  role          Role          @relation(fields: [role_id], references: [id])
+  role_id       Int
+  profile       Json?
+  applications  Application[]
+  payments      Payment[]
+}
+
+model Role {
+  id          Int     @id @default(autoincrement())
+  role_name   String
+  description String?
+  users       User[]
+}
+
+model Application {
+  id           Int                 @id @default(autoincrement())
+  user_id      Int
+  user         User                @relation(fields: [user_id], references: [id])
+  job_id       Int
+  cover_letter String?
+  resume_url   String?
+  status       String
+  statuses     ApplicationStatus[]
+}
+
+model ApplicationStatus {
+  id             Int         @id @default(autoincrement())
+  application_id Int
+  application    Application @relation(fields: [application_id], references: [id])
+  status         String
+  updated_at     DateTime
+}
+
+model Payment {
+  id             Int    @id @default(autoincrement())
+  user_id        Int
+  user           User   @relation(fields: [user_id], references: [id])
+  amount         Float
+  payment_method String
+  status         String
 }
