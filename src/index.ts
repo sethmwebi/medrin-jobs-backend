@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth";
 import auth from "./middlewares/auth";
 import cors from "cors";
-require("./utils/passport-config.ts");
+require("./utils/passport-config");
 
 const app: Express = express();
 
