@@ -10,7 +10,7 @@ export const errorHandler = (
 ) => {
 	const statusCode = err.status || 500;
 	res.status(statusCode).json({
-		status: "error",
+		status: statusCode,
 		message: err.message || "An unexpected error occurred",
 	});
 };

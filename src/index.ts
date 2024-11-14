@@ -28,7 +28,7 @@ export const app = express();
 
 app.use(validateJob);
 app.use(express.json());
-app.use(errorHandler);
+
 app.use("/api/job", jobRoutes);
 
 
@@ -148,7 +148,7 @@ export async function upsertAutocompleteIndex() {
 
 upsertAutocompleteIndex();
 upsertSearchIndex();
-
+app.use(errorHandler);
 connectMongoDB();
 app.listen(port, () => {
 	console.log(`Example app listening at http://127.0.0.1:${port}`);
