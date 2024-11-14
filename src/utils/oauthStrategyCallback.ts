@@ -34,12 +34,13 @@ export const oauthStrategyCallback = async ({
       user = await prisma.user.create({
         data: {
           email,
+          role: "JOBSEEKER",
           name:
             provider === "google"
               ? profile.displayName
               : `${profile.name?.givenName || ""} ${profile.name?.familyName || ""}`.trim(),
           image: profile.photos?.[0].value ?? null,
-          password: null,
+          password: "",
           emailVerified: new Date(),
         },
       });

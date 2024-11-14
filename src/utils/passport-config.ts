@@ -1,5 +1,5 @@
 import { Request } from "express";
-import { Role } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 import passport from "passport";
 import {
   Strategy as JWTStrategy,
@@ -27,7 +27,7 @@ const cookieExtractor = (req: Request): string | null => {
 interface JWTPayload {
   id: string;
   email: string;
-  role: Role;
+  role: UserRole;
   iat: number;
   exp: number;
   accessToken?: string;
