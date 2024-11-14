@@ -1,4 +1,5 @@
 /** @format */
+import { count } from "console";
 import { InferSchemaType, model, Schema } from "mongoose";
 
 const jobSchema = new Schema({
@@ -15,7 +16,7 @@ const jobSchema = new Schema({
 		type: String,
 		required: true,
 	},
-	location: {
+	country: {
 		type: String,
 		required: true,
 	},

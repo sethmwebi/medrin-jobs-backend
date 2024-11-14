@@ -6,6 +6,7 @@ import * as searchController from "../controllers/searchJob";
 const router = express.Router();
 router.get("/search", searchController.searchJobs as unknown as RequestHandler);
 router.get("/autocomplete", searchController.autocomplete);
+router.post("/postBulk", jobController.bulkPostJobs);
 router.get("/", jobController.getJob);
 router.get("/:id", jobController.getJobById);
 router.post("/", jobController.createJob);

@@ -17,7 +17,7 @@ export const searchJobs = async (
 	next: NextFunction
 ) => {
 	const searchQuery = req.query.query as string;
-	const location = req.query.location as string;
+	const country = req.query.country as string;
 
 	if (!searchQuery || searchQuery.length < 2) {
 		res.json([]);
@@ -25,7 +25,7 @@ export const searchJobs = async (
 	}
 	const pipeline = [];
 
-	if (location) {
+	if (country) {
 		pipeline.push({
 			$search: {
 				index: USER_SEARCH_INDEX_NAME,
@@ -37,16 +37,17 @@ export const searchJobs = async (
 								path: [
 									"title",
 									"description",
-									"location",
+									"country",
 									"company",
+									"category",
 								],
 								fuzzy: {},
 							},
 						},
 						{
 							text: {
-								query: location,
-								path: "location",
+								query: country,
+								path: "country",
 							},
 						},
 					],
@@ -59,7 +60,7 @@ export const searchJobs = async (
 				index: USER_SEARCH_INDEX_NAME,
 				text: {
 					query: searchQuery,
-					path: ["title", "description", "location", "company"],
+					path: ["title", "country", "company"],
 					fuzzy: {},
 				},
 			},
@@ -69,8 +70,10 @@ export const searchJobs = async (
 		$project: {
 			_id: 0,
 			score: { $meta: "searchScore" },
+			title: 1,
+			category: 1,
 			description: 1,
-			location: 1,
+			country: 1,
 			salary: 1,
 			company: 1,
 			email: 1,
@@ -87,32 +90,27 @@ export const searchJobs = async (
 
 export const autocomplete: RequestHandler = async (req, res, next) => {
 	const searchQuery = req.query.query as string;
-	const location = req.query.location as string;
+	const country = req.query.country as string;
 
-	const pipeline: any[] = [];
+	const pipeline = [];
 
-	if (location) {
+	if (country) {
 		pipeline.push({
 			$search: {
-				index: "USER_SEARCH_INDEX_NAME",
+				index: USER_SEARCH_INDEX_NAME,
 				compound: {
 					must: [
 						{
 							autocomplete: {
 								query: searchQuery,
-								path: [
-									"title",
-									"description",
-									"location",
-									"company",
-								],
+								path: "title",
 								fuzzy: {},
 							},
 						},
 						{
 							text: {
-								query: location,
-								path: "location",
+								query: country,
+								path: "country",
 							},
 						},
 					],
@@ -122,10 +120,10 @@ export const autocomplete: RequestHandler = async (req, res, next) => {
 	} else {
 		pipeline.push({
 			$search: {
-				index: "USER_AUTOCOMPLETE_INDEX_NAME",
+				index: USER_AUTOCOMPLETE_INDEX_NAME,
 				autocomplete: {
 					query: searchQuery,
-					path: ["title", "description", "location", "company"],
+					path: "title",
 					tokenOrder: "sequential",
 				},
 			},
@@ -137,7 +135,7 @@ export const autocomplete: RequestHandler = async (req, res, next) => {
 			_id: 0,
 			score: { $meta: "searchScore" },
 			description: 1,
-			location: 1,
+			country: 1,
 			salary: 1,
 			company: 1,
 			email: 1,

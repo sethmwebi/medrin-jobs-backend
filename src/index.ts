@@ -24,13 +24,13 @@ export const ATLAS_DATA_API_URL = `https://data.mongodb-api.com/i4huirbguwejgiw/
 export const USER_SEARCH_INDEX_NAME = "location-search";
 export const USER_AUTOCOMPLETE_INDEX_NAME = "location_autocomplete";
 
-
 export const app = express();
+
 app.use(validateJob);
 app.use(express.json());
-
-app.use("/api/job", jobRoutes);
 app.use(errorHandler);
+app.use("/api/job", jobRoutes);
+
 
 const port = process.env.PORT;
 
@@ -81,32 +81,40 @@ export async function upsertSearchIndex() {
 	}
 }
 
-export async function upsertAutoCompleteIndex() {
-	try {
-		const response = await axios({
-			url: ATLAS_SEARCH_INDEX_API_URL,
-			method: "POST",
-			auth: {
-				username: process.env.ATLAS_API_PUBLIC_KEY as string,
-				password: process.env.ATLAS_API_PRIVATE_KEY as string,
-			},
+export async function upsertAutocompleteIndex() {
+	const userAutocompleteIndex = await findIndexByName(
+		USER_AUTOCOMPLETE_INDEX_NAME
+	);
+	if (!userAutocompleteIndex) {
+		await request(ATLAS_SEARCH_INDEX_API_URL, {
 			data: {
-				database: process.env.MONGO_DATABASE,
-				collectionName: process.env.MONGO_COLLECTION,
-				name: "location-search",
+				name: USER_AUTOCOMPLETE_INDEX_NAME,
+				database: MONGODB_DATABASE,
+				collectionName: MONGODB_COLLECTION,
 				mappings: {
-					dynamic: true,
+					dynamic: false,
+					fields: {
+						fullName: [
+							{
+								foldDiacritics: false,
+								maxGrams: 7,
+								minGrams: 3,
+								tokenization: "edgeGram",
+								type: "autocomplete",
+							},
+						],
+					},
 				},
 			},
-			headers: {
-				"Content-Type": "application/json",
-			},
+			dataType: "json",
+			contentType: "application/json",
+			method: "POST",
+			digestAuth: DIGEST_AUTH,
 		});
-		console.log("Search index upserted successfully:", response.data);
-	} catch (error) {
-		console.error("Error upserting search index:", error);
 	}
 }
+
+upsertAutocompleteIndex();
 upsertSearchIndex();
 
 connectMongoDB();

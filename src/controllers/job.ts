@@ -6,6 +6,7 @@ import JobModel from "../models/job";
 import { Job } from "../types/interfaces";
 import mongoose, { Mongoose } from "mongoose";
 import createHttpError from "http-errors";
+import { HttpClientRequestError } from "urllib";
 
 export const getJob: RequestHandler = async (req, res, next) => {
 	try {
@@ -16,7 +17,6 @@ export const getJob: RequestHandler = async (req, res, next) => {
 	}
 };
 
-
 export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	req,
 	res,
@@ -25,13 +25,34 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	if (
 		!req.body.title ||
 		!req.body.description ||
-		!req.body.location ||
+		!req.body.country ||
 		!req.body.salary ||
 		!req.body.company ||
 		!req.body.email ||
 		!req.body.contact
 	) {
 		throw createHttpError(400, "All fields are required");
+	}
+	if (req.body.salary < 0) {
+		throw createHttpError(400, "Salary cannot be negative");
+	}
+	if (req.body.contact < 0) {
+		throw createHttpError(400, "Contact cannot be negative");
+	}
+	if (
+		await JobModel.exists({
+			title: req.body.title,
+			company: req.body.company,
+			email: req.body.email,
+			contact: req.body.contact,
+			country: req.body.country,
+			salary: req.body.salary,
+			category: req.body.category,
+			description: req.body.description,
+			
+		})
+	) {
+		throw createHttpError(400, "Job already exists");
 	}
 
 	try {
