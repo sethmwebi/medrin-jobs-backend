@@ -1,5 +1,5 @@
 {
-  "name": "user-service",
+  "name": "medrin-backend",
   "version": "1.0.0",
   "main": "index.js",
   "prisma": {
@@ -37,17 +37,24 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+   
+    "helmet": "^8.0.0",
+
+    "morgan": "^1.10.0",
+    "axios": "^1.7.7",
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "express": "^4.21.1",
-    "helmet": "^8.0.0",
+    "express-validator": "^7.2.0",
     "http-errors": "^2.0.0",
     "jsonwebtoken": "^9.0.2",
-    "morgan": "^1.10.0",
+    "mongoose": "^8.8.1",
     "passport": "^0.7.0",
     "passport-google-oauth20": "^2.0.0",
     "passport-jwt": "^4.0.1",
     "passport-local": "^1.0.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "urllib": "^4.4.0",
+    "validator": "^13.12.0"
   }
 }
