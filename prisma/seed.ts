@@ -4,31 +4,18 @@ import { faker } from "@faker-js/faker";
 const prisma = new PrismaClient();
 
 async function main() {
-  // Seed Roles
-  const roles = ["job seeker", "employer", "admin", "super admin"];
-  for (let i = 0; i < 20; i++) {
-    await prisma.role.create({
-      data: {
-        role_name: faker.helpers.arrayElement(roles),
-        description: faker.lorem.sentence(),
-      },
-    });
-  }
-
   // Seed Users
+  const roles = ["JOBSEEKER", "EMPLOYER", "ADMIN", "SUPERADMIN"];
   for (let i = 0; i < 20; i++) {
-    const role = await prisma.role.findFirst({
-      skip: Math.floor(Math.random() * 20),
-    });
-
     await prisma.user.create({
       data: {
         name: faker.name.fullName(),
         email: faker.internet.email(),
         emailVerified: faker.date.past(),
         image: faker.image.avatar(),
-        password_hash: faker.internet.password(),
-        role_id: role?.id ?? "",
+        password: faker.internet.password(),
+        // @ts-ignore
+        role: faker.helpers.arrayElement(roles),
         profile: { bio: faker.lorem.text() },
         createdAt: new Date(),
         updatedAt: new Date(),
