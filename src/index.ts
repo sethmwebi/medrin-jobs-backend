@@ -34,6 +34,17 @@ app.use("/api/job", jobRoutes);
 
 const port = process.env.PORT;
 
+/**
+ * Finds a search index by name.
+ *
+ * @param {string} indexName
+ * The name of the search index to find.
+ *
+ * @returns {Promise<import("mongodb").Collection.IndexesInfo | null>}
+ * The search index information or null if the index does not exist.
+ *
+ * @throws If there is an error while fetching the indexes.
+ */
 export async function findIndexByName(indexName: string) {
 	try {
 		const allIndexesResponse = await request(
@@ -61,6 +72,16 @@ export async function findIndexByName(indexName: string) {
 	}
 }
 
+/**
+ * Upserts a search index for user data in MongoDB Atlas.
+ *
+ * This function checks if a search index with the name specified by
+ * USER_SEARCH_INDEX_NAME exists. If it does not exist, it creates a new
+ * search index using the MongoDB Atlas Search API, with dynamic mappings.
+ *
+ * @throws Will throw an error if there is a problem with the network request
+ * or if the index creation fails.
+ */
 export async function upsertSearchIndex() {
 	const userSearchIndex = await findIndexByName(USER_SEARCH_INDEX_NAME);
 	if (!userSearchIndex) {
@@ -81,6 +102,17 @@ export async function upsertSearchIndex() {
 	}
 }
 
+/**
+ * Upserts an autocomplete search index for user data in MongoDB Atlas.
+ *
+ * This function checks if a search index with the name specified by
+ * USER_AUTOCOMPLETE_INDEX_NAME exists. If it does not exist, it creates a new
+ * search index using the MongoDB Atlas Search API, with edgeGram tokenization
+ * for the `fullName` field.
+ *
+ * @throws Will throw an error if there is a problem with the network request
+ * or if the index creation fails.
+ */
 export async function upsertAutocompleteIndex() {
 	const userAutocompleteIndex = await findIndexByName(
 		USER_AUTOCOMPLETE_INDEX_NAME

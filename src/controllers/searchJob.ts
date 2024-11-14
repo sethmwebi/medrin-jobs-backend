@@ -12,6 +12,24 @@ import {
 import job from "../models/job";
 
 
+/**
+ * Searches for jobs based on the query parameters provided in the request.
+ *
+ * Utilizes a MongoDB aggregation pipeline to perform a search on the jobs
+ * collection. If a country is specified, it will perform a compound search
+ * combining the search query and the country. Otherwise, it searches using
+ * the search query across specified fields. The results are projected to
+ * include relevant job details and sorted by search relevance.
+ *
+ * @param req - The request object containing query parameters `query` and `country`.
+ * @param res - The response object used to return the search results.
+ * @param next - The next middleware function in the stack.
+ *
+ * @returns A JSON response with a list of jobs matching the search criteria,
+ * limited to 10 results, sorted by search score.
+ *
+ * @throws Will pass any errors to the next middleware.
+ */
 export const searchJobs = async (
 	req: Request,
 	res: Response,
@@ -89,6 +107,22 @@ export const searchJobs = async (
 	res.json(result);
 };
 
+/**
+ * Performs an autocomplete search on job titles based on the provided query
+ * parameter. If a country is specified, it will perform a compound search
+ * combining the search query and the country. Otherwise, it searches using
+ * the search query across the job titles. The results are projected to
+ * include relevant job details and sorted by search relevance.
+ *
+ * @param req - The request object containing query parameters `query` and `country`.
+ * @param res - The response object used to return the search results.
+ * @param next - The next middleware function in the stack.
+ *
+ * @returns A JSON response with a list of jobs matching the search criteria,
+ * limited to 10 results, sorted by search score.
+ *
+ * @throws Will pass any errors to the next middleware.
+ */
 export const autocomplete: RequestHandler = async (req, res, next) => {
 	const searchQuery = req.query.query as string;
 	const country = req.query.country as string;

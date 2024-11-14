@@ -8,6 +8,12 @@ import mongoose, { Mongoose } from "mongoose";
 import createHttpError from "http-errors";
 import { HttpClientRequestError } from "urllib";
 
+/**
+ * Handles GET /api/job requests.
+ *
+ * Retrieves all jobs from the database and returns them in the response.
+ *
+ */
 export const getJob: RequestHandler = async (req, res, next) => {
 	try {
 		const jobs = await JobModel.find().exec();
@@ -17,6 +23,13 @@ export const getJob: RequestHandler = async (req, res, next) => {
 	}
 };
 
+/**
+ * Handles POST /api/job requests.
+ *
+ * Creates a new job with the provided data.
+ *
+
+ */
 export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	req,
 	res,
@@ -49,7 +62,6 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 			salary: req.body.salary,
 			category: req.body.category,
 			description: req.body.description,
-			
 		})
 	) {
 		throw createHttpError(400, "Job already exists");
@@ -63,6 +75,13 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	}
 };
 
+/**
+ * Handles GET /api/job/:id requests.
+ *
+ * Retrieves a single job by ID from the database and returns it in the response.
+ *
+
+ */
 export const getJobById: RequestHandler = async (req, res, next) => {
 	const { id } = req.params;
 	try {
@@ -79,6 +98,12 @@ export const getJobById: RequestHandler = async (req, res, next) => {
 	}
 };
 
+/**
+ * Handles DELETE /api/job/:id requests.
+ *
+ * Deletes a single job by ID from the database.
+ *
+ */
 export const deleteJobById: RequestHandler = async (req, res, next) => {
 	const { id } = req.params;
 	try {
@@ -95,6 +120,15 @@ export const deleteJobById: RequestHandler = async (req, res, next) => {
 	}
 };
 
+/**
+ * Handles PATCH /api/job/:id requests.
+ *
+ * Updates a job by ID with the data provided in the request body.
+ * Validates the job ID and ensures it is a valid MongoDB ObjectId.
+ * If the job is successfully updated, it returns the updated job in the response.
+ *
+
+ */
 export const updateJobById: RequestHandler = async (req, res, next) => {
 	const { id } = req.params;
 	try {
@@ -113,6 +147,14 @@ export const updateJobById: RequestHandler = async (req, res, next) => {
 	}
 };
 
+/**
+ * Handles POST /api/job/postBulk requests.
+ *
+ * Inserts multiple jobs into the database based on the array of job data
+ * provided in the request body. If the insertion is successful, it returns
+ * the inserted jobs in the response with a status code of 201.
+ *
+ */
 export const bulkPostJobs: RequestHandler = async (req, res, next) => {
 	try {
 		const jobs = await JobModel.insertMany(req.body);
