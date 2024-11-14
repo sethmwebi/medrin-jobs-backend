@@ -1,7 +1,7 @@
 {
   "name": "Medrin Jobs",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "./dist/src/index.js",
   "prisma": {
     "seed": "ts-node --transpile-only prisma/seed.ts"
   },
