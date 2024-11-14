@@ -1,12 +1,12 @@
-import { Role } from "@prisma/client";
+import { UserRole } from "@prisma/client";
 import { NextFunction } from "express";
 
 interface RequestWithUser extends Request {
-  user?: { role: Role };
+  user?: { role: UserRole };
 }
 
 const admin = (req: RequestWithUser, res: any, next: NextFunction) => {
-  if (req.user && req.user.role === Role.ADMIN) {
+  if (req.user && req.user.role === UserRole.ADMIN) {
     return next();
   }
   return res.status(403).json({ message: "Action is forbidden!" });
