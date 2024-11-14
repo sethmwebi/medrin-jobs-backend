@@ -1,5 +1,5 @@
 /** @format */
-// import env from "./utils/validateEnv";
+import env from "./utils/validEnv";
 import "dotenv/config";
 import { connectMongoDB } from "./config/database";
 import express from "express";

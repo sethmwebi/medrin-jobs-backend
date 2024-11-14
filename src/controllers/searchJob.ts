@@ -11,6 +11,7 @@ import {
 } from "..";
 import job from "../models/job";
 
+
 export const searchJobs = async (
 	req: Request,
 	res: Response,
