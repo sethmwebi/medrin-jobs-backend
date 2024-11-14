@@ -1,5 +1,5 @@
 {
-  "name": "user-service",
+  "name": "Medrin Jobs",
   "version": "1.0.0",
   "main": "src/index.js",
   "prisma": {
@@ -8,7 +8,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node ./dist/index.js",
-    "dev": "nodemon ./src/index.ts"
+    "dev": "nodemon ./src/index.ts",
+    "build": "tsc"
   },
   "keywords": [],
   "author": "",
