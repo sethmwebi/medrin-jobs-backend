@@ -10,7 +10,6 @@ const jobSchema = new Schema({
 	description: {
 		type: String,
 		required: true,
-
 	},
 	category: {
 		type: String,
@@ -44,4 +43,4 @@ const jobSchema = new Schema({
 
 type Job = InferSchemaType<typeof jobSchema>;
 
-export default model<Job>("Job", jobSchema); 
+export default model<Job>("Job", jobSchema);
