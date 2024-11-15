@@ -8,6 +8,8 @@ import { LoginSchema } from "../schemas/LoginSchema";
 import { User } from "@prisma/client";
 import passport from "passport";
 
+import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../sendgrid/email";
+
 export const register: RequestHandler = async (req, res, next) => {
   try {
     const result = RegisterSchema.parse(req.body);
