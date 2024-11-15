@@ -41,7 +41,7 @@ require("./utils/passport-config.ts");
 
 const app: Express = express();
 
-const port = env.PORT || 5000;
+const port = env.PORT;
 
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(validateJob);
@@ -78,18 +78,6 @@ app.get("/", (req, res) => {
 app.get("/protected", auth, (req, res, next) => {
   res.status(200).send("Protected route access granted!");
 });
-
-(async () => {
-  try {
-    await prisma.$connect();
-    app.listen(port, () => console.log(`Server listening on port ${port}`));
-  } catch (error) {
-    console.error("Error connecting to Prisma:", error);
-    process.exit(1);
-  } finally {
-    await prisma.$disconnect();
-  }
-})();
 
 app.use((_, __, next) => {
   next(createHttpError(404, "Endpoint not found"));
@@ -222,6 +210,14 @@ upsertAutocompleteIndex();
 upsertSearchIndex();
 app.use(errorHandler);
 connectMongoDB();
-// app.listen(port, () => {
-// 	console.log(`Example app listening at http://127.0.0.1:${port}`);
-// })
+(async () => {
+  try {
+    await prisma.$connect();
+    app.listen(port, () => console.log(`Server listening on port ${port}`));
+  } catch (error) {
+    console.error("Error connecting to Prisma:", error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
+})();
