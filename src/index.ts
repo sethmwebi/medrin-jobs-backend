@@ -213,10 +213,14 @@ connectMongoDB();
 (async () => {
   try {
     await prisma.$connect();
+<<<<<<< HEAD
 
     app.listen(port, () =>
       console.log(`Server running on port http://127.0.0.1:${port}`),
     );
+=======
+    app.listen(port, () => console.log(`Server listening on port ${port}`));
+>>>>>>> 7c11af1 (merged conflicts)
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
     process.exit(1);
