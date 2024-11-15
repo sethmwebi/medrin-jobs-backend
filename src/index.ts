@@ -64,10 +64,10 @@ app.use(morgan("dev"));
 
 // Enable cors for http://localhost:5173
 app.use(
-  cors({
-    origin: "http://localhost:5173",
-    credentials: true,
-  }),
+	cors({
+		credentials: true,
+		origin: "http://localhost:5173",
+	})
 );
 
 app.use("/", authRouter);

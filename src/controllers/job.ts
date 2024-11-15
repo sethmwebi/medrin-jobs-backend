@@ -41,7 +41,7 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 		if (
 			!req.body.title ||
 			!req.body.description ||
-			!req.body.country ||
+			!req.body.location ||
 			!req.body.salary ||
 			!req.body.company ||
 			!req.body.email ||
@@ -61,7 +61,7 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 				company: req.body.company,
 				email: req.body.email,
 				contact: req.body.contact,
-				country: req.body.country,
+				location: req.body.location,
 				salary: req.body.salary,
 				category: req.body.category,
 				description: req.body.description,
