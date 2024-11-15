@@ -15,13 +15,21 @@ export const register: RequestHandler = async (req, res, next) => {
     const result = RegisterSchema.parse(req.body);
     const { email, password, name, provider = "credentials" } = result;
 
+    // For checking if all information is provided
+    if (!email || !password || !name) {
+      throw new Error("Please provide all fields");
+    }
+
     // check if the user already exists
     const existingUser = await prisma.user.findUnique({ where: { email } });
     if (existingUser) {
-      throw createHttpError(400, "User with this email address already exists");
+      throw createHttpError(400, "User already exists");
     }
 
+    //This is the password hashing spot
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    
     const user = await prisma.user.create({
       data: {
         email,
