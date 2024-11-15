@@ -28,7 +28,7 @@ interface SendEmailParams {
   subject: string;
   html: string;
   from?: string;  // `from` is optional, as it defaults to `sender.email`
-  text: string;
+  text?: string;
 }
 
 // Function to send email
