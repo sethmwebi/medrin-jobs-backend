@@ -9,6 +9,7 @@ import { User } from "@prisma/client";
 import passport from "passport";
 
 import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../sendgrid/email";
+import { generateVerificationToken } from "../utils/generateVerificationToken";
 
 export const register: RequestHandler = async (req, res, next) => {
   try {
@@ -29,12 +30,15 @@ export const register: RequestHandler = async (req, res, next) => {
     //This is the password hashing spot
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    
+    const verificationToken = generateVerificationToken()
+
     const user = await prisma.user.create({
       data: {
         email,
         password: hashedPassword,
         name,
+        verificationToken,
+        verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
         role: "JOBSEEKER",
         accounts: {
           create: {
@@ -47,6 +51,10 @@ export const register: RequestHandler = async (req, res, next) => {
     });
 
     const { accessToken, refreshToken } = generateToken(res, user);
+
+    // This is for verification
+    await sendVerificationEmail(user.email, verificationToken);
+
     const {
       password: _,
       role: __,

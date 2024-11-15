@@ -6,16 +6,16 @@ import {
   WELCOME_EMAIL_TEMPLATE
 } from './emailTemplate'; // Updated import without .js extension
 
-// Type for the email-related parameters
-interface EmailParams {
-  email: string;
-  verificationToken?: string;
-  name?: string;
-  resetURL?: string;
-}
+// // Type for the email-related parameters
+// interface EmailParams {
+//   email: string;
+//   verificationToken?: string;
+//   name?: string;
+//   resetURL?: string;
+// }
 
 // Function to send the verification email
-export const sendVerificationEmail = async ({ email, verificationToken }: EmailParams): Promise<void> => {
+export const sendVerificationEmail = async (email: string, verificationToken:string): Promise<void> => {
   try {
     const response = await sendEmail({
       to: email,
@@ -31,7 +31,7 @@ export const sendVerificationEmail = async ({ email, verificationToken }: EmailP
 };
 
 // Function to send the welcome email
-export const sendWelcomeEmail = async ({ email, name }: EmailParams): Promise<void> => {
+export const sendWelcomeEmail = async (email:string, name: string): Promise<void> => {
   try {
     const response = await sendEmail({
       to: email,
@@ -47,7 +47,7 @@ export const sendWelcomeEmail = async ({ email, name }: EmailParams): Promise<vo
 };
 
 // Function to send the password reset request email
-export const sendPasswordResetEmail = async ({ email, resetURL }: EmailParams): Promise<void> => {
+export const sendPasswordResetEmail = async ( email:string, resetURL:string): Promise<void> => {
   try {
     const response = await sendEmail({
       to: email,
@@ -63,7 +63,7 @@ export const sendPasswordResetEmail = async ({ email, resetURL }: EmailParams): 
 };
 
 // Function to send the password reset success email
-export const sendResetSuccessEmail = async ({ email }: EmailParams): Promise<void> => {
+export const sendResetSuccessEmail = async (email:string): Promise<void> => {
   try {
     const response = await sendEmail({
       to: email,
