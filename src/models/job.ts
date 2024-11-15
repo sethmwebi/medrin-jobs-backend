@@ -23,6 +23,10 @@ const jobSchema = new Schema({
 		type: Number,
 		required: true,
 	},
+	work_type: {
+		type: String,
+		required: true,
+	},
 	company: {
 		type: String,
 		required: true,
