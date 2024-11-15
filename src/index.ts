@@ -41,15 +41,12 @@ require("./utils/passport-config.ts");
 
 const app: Express = express();
 
-const port = env.PORT
+const port = env.PORT;
 
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(validateJob);
 
-
 app.use("/api/job", jobRoutes);
-
-
 
 app.use(express.json());
 // app.use(helmet());
@@ -82,8 +79,6 @@ app.get("/protected", auth, (req, res, next) => {
   res.status(200).send("Protected route access granted!");
 });
 
-
-
 app.use((_, __, next) => {
   next(createHttpError(404, "Endpoint not found"));
 });
@@ -102,11 +97,8 @@ app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
     errorMessage = error.message;
   }
 
-	res.status(statusCode).json({ error: errorMessage })
+  res.status(statusCode).json({ error: errorMessage });
 });
-
-
-
 
 /**
  * Finds a search index by name.
@@ -120,30 +112,24 @@ app.use((error: any, _req: Request, res: Response, _next: NextFunction) => {
  * @throws If there is an error while fetching the indexes.
  */
 export async function findIndexByName(indexName: string) {
-	try {
-		const allIndexesResponse = await request(
-			`${ATLAS_SEARCH_INDEX_API_URL}`,
-			{
-				dataType: "json",
-				contentType: "application/json",
-				method: "GET",
-				digestAuth: DIGEST_AUTH,
-			}
-		);
-		console.log("Indexes Response:", allIndexesResponse.data);
-		if (Array.isArray(allIndexesResponse.data)) {
-			return allIndexesResponse.data.find((i) => i.name === indexName);
-		} else {
-			console.error(
-				"Expected an array but got:",
-				allIndexesResponse.data
-			);
-			return null;
-		}
-	} catch (error) {
-		console.error("Error fetching indexes:", error);
-		throw error;
-	}
+  try {
+    const allIndexesResponse = await request(`${ATLAS_SEARCH_INDEX_API_URL}`, {
+      dataType: "json",
+      contentType: "application/json",
+      method: "GET",
+      digestAuth: DIGEST_AUTH,
+    });
+    console.log("Indexes Response:", allIndexesResponse.data);
+    if (Array.isArray(allIndexesResponse.data)) {
+      return allIndexesResponse.data.find((i) => i.name === indexName);
+    } else {
+      console.error("Expected an array but got:", allIndexesResponse.data);
+      return null;
+    }
+  } catch (error) {
+    console.error("Error fetching indexes:", error);
+    throw error;
+  }
 }
 
 /**
@@ -157,23 +143,23 @@ export async function findIndexByName(indexName: string) {
  * or if the index creation fails.
  */
 export async function upsertSearchIndex() {
-	const userSearchIndex = await findIndexByName(USER_SEARCH_INDEX_NAME);
-	if (!userSearchIndex) {
-		await request(ATLAS_SEARCH_INDEX_API_URL, {
-			data: {
-				name: USER_SEARCH_INDEX_NAME,
-				database: MONGODB_DATABASE,
-				collectionName: MONGODB_COLLECTION,
-				mappings: {
-					dynamic: true,
-				},
-			},
-			dataType: "json",
-			contentType: "application/json",
-			method: "POST",
-			digestAuth: DIGEST_AUTH,
-		});
-	}
+  const userSearchIndex = await findIndexByName(USER_SEARCH_INDEX_NAME);
+  if (!userSearchIndex) {
+    await request(ATLAS_SEARCH_INDEX_API_URL, {
+      data: {
+        name: USER_SEARCH_INDEX_NAME,
+        database: MONGODB_DATABASE,
+        collectionName: MONGODB_COLLECTION,
+        mappings: {
+          dynamic: true,
+        },
+      },
+      dataType: "json",
+      contentType: "application/json",
+      method: "POST",
+      digestAuth: DIGEST_AUTH,
+    });
+  }
 }
 
 /**
@@ -188,36 +174,36 @@ export async function upsertSearchIndex() {
  * or if the index creation fails.
  */
 export async function upsertAutocompleteIndex() {
-	const userAutocompleteIndex = await findIndexByName(
-		USER_AUTOCOMPLETE_INDEX_NAME
-	);
-	if (!userAutocompleteIndex) {
-		await request(ATLAS_SEARCH_INDEX_API_URL, {
-			data: {
-				name: USER_AUTOCOMPLETE_INDEX_NAME,
-				database: MONGODB_DATABASE,
-				collectionName: MONGODB_COLLECTION,
-				mappings: {
-					dynamic: false,
-					fields: {
-						fullName: [
-							{
-								foldDiacritics: false,
-								maxGrams: 7,
-								minGrams: 3,
-								tokenization: "edgeGram",
-								type: "autocomplete",
-							},
-						],
-					},
-				},
-			},
-			dataType: "json",
-			contentType: "application/json",
-			method: "POST",
-			digestAuth: DIGEST_AUTH,
-		});
-	}
+  const userAutocompleteIndex = await findIndexByName(
+    USER_AUTOCOMPLETE_INDEX_NAME,
+  );
+  if (!userAutocompleteIndex) {
+    await request(ATLAS_SEARCH_INDEX_API_URL, {
+      data: {
+        name: USER_AUTOCOMPLETE_INDEX_NAME,
+        database: MONGODB_DATABASE,
+        collectionName: MONGODB_COLLECTION,
+        mappings: {
+          dynamic: false,
+          fields: {
+            fullName: [
+              {
+                foldDiacritics: false,
+                maxGrams: 7,
+                minGrams: 3,
+                tokenization: "edgeGram",
+                type: "autocomplete",
+              },
+            ],
+          },
+        },
+      },
+      dataType: "json",
+      contentType: "application/json",
+      method: "POST",
+      digestAuth: DIGEST_AUTH,
+    });
+  }
 }
 
 upsertAutocompleteIndex();
@@ -225,14 +211,16 @@ upsertSearchIndex();
 app.use(errorHandler);
 connectMongoDB();
 (async () => {
-	try {
-		await prisma.$connect() 
-	
-		app.listen(port, () => console.log(`Server running on port http://127.0.0.1:${port}`));
-	} catch (error) {
-		console.error("Error connecting to Prisma:", error);
-		process.exit(1);
-	} finally {
-		await prisma.$disconnect();
-	}
+  try {
+    await prisma.$connect();
+
+    app.listen(port, () =>
+      console.log(`Server running on port http://127.0.0.1:${port}`),
+    );
+  } catch (error) {
+    console.error("Error connecting to Prisma:", error);
+    process.exit(1);
+  } finally {
+    await prisma.$disconnect();
+  }
 })();
