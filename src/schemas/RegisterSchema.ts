@@ -4,9 +4,7 @@ export const RegisterSchema = z
   .object({
     email: z.string().email({ message: "Invalid message address" }),
     name: z.string().optional(),
-    provider: z
-      .enum(["google", "facebook", "twitter", "credentials"])
-      .default("credentials"),
+    provider: z.enum(["google", "credentials"]).default("credentials"),
     password: z
       .string()
       .min(6, { message: "Password should be atleast 6 characters long" }),
