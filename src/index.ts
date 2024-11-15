@@ -79,11 +79,6 @@ app.get("/protected", auth, (req, res, next) => {
   res.status(200).send("Protected route access granted!");
 });
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> 20f165a (Fix: Initialize Prisma connection before starting server)
 app.use((_, __, next) => {
   next(createHttpError(404, "Endpoint not found"));
 });
@@ -214,37 +209,18 @@ export async function upsertAutocompleteIndex() {
 upsertAutocompleteIndex();
 upsertSearchIndex();
 app.use(errorHandler);
-<<<<<<< HEAD
+
 connectMongoDB();
 (async () => {
   try {
     await prisma.$connect();
-<<<<<<< HEAD
-
     app.listen(port, () =>
       console.log(`Server running on port http://127.0.0.1:${port}`),
     );
-=======
-    app.listen(port, () => console.log(`Server listening on port ${port}`));
->>>>>>> 7c11af1 (merged conflicts)
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
     process.exit(1);
   } finally {
     await prisma.$disconnect();
   }
-=======
-
-(async () => {
-	try {
-		await prisma.$connect() 
-		await connectMongoDB()
-		app.listen(port, () => console.log(`Server running on port http://127.0.0.1:${port}`));
-	} catch (error) {
-		console.error("Error connecting to Prisma:", error);
-		process.exit(1);
-	} finally {
-		await prisma.$disconnect();
-	}
->>>>>>> 20f165a (Fix: Initialize Prisma connection before starting server)
 })();
