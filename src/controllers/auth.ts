@@ -186,10 +186,10 @@ export const google: RequestHandler = async (req, res, next) => {
   })(req, res, next);
 };
 
-// export const logout = async (req: Request, res: Response): Promise<void> => {
-//   res.clearCookie('token');
-//   res.status(200).json({
-//     success: true,
-//     message: 'Logged out successfully',
-//   });
-// };
+export const logout = async (req: Request, res: Response): Promise<void> => {
+  res.clearCookie('token');
+  res.status(200).json({
+    success: true,
+    message: 'Logged out successfully',
+  });
+};
