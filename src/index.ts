@@ -223,11 +223,12 @@ export async function upsertAutocompleteIndex() {
 upsertAutocompleteIndex();
 upsertSearchIndex();
 app.use(errorHandler);
-connectMongoDB();
+
 (async () => {
 	try {
-		await prisma.$connect();
-		app.listen(port, () => console.log(`Server listening on port ${port}`));
+		await prisma.$connect() 
+		await connectMongoDB()
+		app.listen(port, () => console.log(`Server running on port http://127.0.0.1:${port}`));
 	} catch (error) {
 		console.error("Error connecting to Prisma:", error);
 		process.exit(1);
