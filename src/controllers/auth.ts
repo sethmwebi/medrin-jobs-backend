@@ -69,6 +69,45 @@ export const register: RequestHandler = async (req, res, next) => {
   }
 };
 
+export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+  const { code } = req.body;
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        verificationToken: code,
+        verificationTokenExpiresAt: { gt: new Date() }, // Ensures token has not expired
+      },
+    });
+
+    if (!user) {
+      res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+      return;
+    }
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        isVerified: true,
+        verificationToken: undefined, // After becoming true the verification code becomes undefined
+        verificationTokenExpiresAt: undefined, // since there is no token this also will have to change
+      },
+    });
+
+    await sendWelcomeEmail(user.email, user.name);
+
+    res.status(200).json({
+      success: true,
+      message: 'Email verified successfully',
+      user: {
+        ...user,
+        password: undefined,
+      },
+    });
+  } catch (error: any) {
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
+
 export const login: RequestHandler = async (req, res, next) => {
   try {
     const result = LoginSchema.parse(req.body);
