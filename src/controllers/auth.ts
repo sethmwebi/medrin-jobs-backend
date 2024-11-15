@@ -125,13 +125,13 @@ export const login: RequestHandler = async (req, res, next) => {
     if (!user) {
       throw createHttpError(
         400,
-        "email address could not be found in our system",
+        "Invalid email or password",
       );
     }
 
     const validPassword = await bcrypt.compare(password, user.password!);
     if (!validPassword) {
-      throw createHttpError(400, "Incorrect email or password");
+      throw createHttpError(400, "Invalid email or password");
     }
 
     const {
@@ -185,3 +185,11 @@ export const google: RequestHandler = async (req, res, next) => {
     handleOAuthCallback(err, user, req, res, next);
   })(req, res, next);
 };
+
+// export const logout = async (req: Request, res: Response): Promise<void> => {
+//   res.clearCookie('token');
+//   res.status(200).json({
+//     success: true,
+//     message: 'Logged out successfully',
+//   });
+// };
