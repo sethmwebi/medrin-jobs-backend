@@ -229,3 +229,41 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
     res.status(400).json({ success: false, message: error.message });
   }
 };
+
+export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { token } = req.params;
+    const { password } = req.body;
+
+    const user = await prisma.user.findFirst({
+      where: {
+        resetPasswordToken: token,
+        resetPasswordExpiresAt: { gt: new Date() },
+      },
+    });
+
+    if (!user) {
+      res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+      return;
+    }
+
+    // update password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        resetPasswordToken: undefined,
+        resetPasswordExpiresAt: undefined,
+      },
+    });
+
+    await sendResetSuccessEmail(user.email);
+
+    res.status(200).json({ success: true, message: 'Password reset successful' });
+  } catch (error: any) {
+    console.log('Error in resetPassword ', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
+};
