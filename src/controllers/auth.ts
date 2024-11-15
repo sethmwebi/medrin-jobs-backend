@@ -7,6 +7,7 @@ import generateToken from "../utils/generate-token";
 import { LoginSchema } from "../schemas/LoginSchema";
 import { User } from "@prisma/client";
 import passport from "passport";
+import crypto from 'crypto'
 
 import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../sendgrid/email";
 import { generateVerificationToken } from "../utils/generateVerificationToken";
@@ -192,4 +193,39 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
     success: true,
     message: 'Logged out successfully',
   });
+};
+
+export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+  const { email } = req.body;
+
+  try {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) {
+      res.status(400).json({ success: false, message: 'User not found' });
+      return;
+    }
+
+    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        resetPasswordToken: resetToken,
+        resetPasswordExpiresAt: resetTokenExpiresAt,
+      },
+    });
+
+    //Once the frontend is updated the client URL will also need to be updated
+
+    await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+
+    res.status(200).json({
+      success: true,
+      message: 'Password reset email sent successfully',
+    });
+  } catch (error: any) {
+    console.log('Error in forgotPassword', error);
+    res.status(400).json({ success: false, message: error.message });
+  }
 };
