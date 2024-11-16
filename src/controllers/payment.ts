@@ -51,9 +51,7 @@ export const handlePaymentSuccess = async (req:Request, res:Response, next:NextF
 			},
 		});
 
-		// Step 3: Push job details to Redis queue
-		await redis.lpush("job_queue", JSON.stringify({ userId, jobDetails }));
-
+		// Step 3: Start processing the job
 		res.status(200).json({
 			message: "Payment successful, job processing started",
 		});
