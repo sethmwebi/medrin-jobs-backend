@@ -117,12 +117,15 @@ model Blog {
   userId    Int        
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
+  deletedAt DateTime?  @db.Timestamp
 
 
   user      User       @relation(fields: [userId], references: [id])
   likes     Like[]     
   comments  Comment[]
   saves     SavedBlog[] 
+
+  @@index([userId])
 }
 
 
@@ -137,6 +140,7 @@ model Like {
   blog   Blog   @relation(fields: [blogId], references: [id])
 
   @@unique([userId, blogId])
+  @@index([userId, blogId])
 }
 
 
@@ -150,6 +154,8 @@ model Comment {
 
   user     User   @relation(fields: [userId], references: [id])
   blog     Blog   @relation(fields: [blogId], references: [id])
+
+  @@index([userId, blogId])
 }
 
 
@@ -164,4 +170,5 @@ model SavedBlog {
   blog   Blog   @relation(fields: [blogId], references: [id])
 
   @@unique([userId, blogId]) // Ensure one saved blog per user per blog
+  @@index([userId, blogId])
 }
