@@ -107,3 +107,61 @@ model VerificationToken {
   @@id([identifier, token])
   @@map("verification_tokens")
 }
+
+
+model Blog {
+  id        Int        @id @default(cuid())
+  title     String
+  image     String?    
+  post      String
+  userId    Int        
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+
+  user      User       @relation(fields: [userId], references: [id])
+  likes     Like[]     
+  comments  Comment[]
+  saves     SavedBlog[] 
+}
+
+
+model Like {
+  id      Int     @id @default(cuid())
+  userId  Int     
+  blogId  Int     
+  createdAt DateTime @default(now())
+
+
+  user   User   @relation(fields: [userId], references: [id])
+  blog   Blog   @relation(fields: [blogId], references: [id])
+
+  @@unique([userId, blogId])
+}
+
+
+model Comment {
+  id        Int      @id @default(cuid())
+  userId    Int
+  blogId    Int       
+  comment   String
+  createdAt DateTime  @default(now())
+
+
+  user     User   @relation(fields: [userId], references: [id])
+  blog     Blog   @relation(fields: [blogId], references: [id])
+}
+
+
+model SavedBlog {
+  id        Int     @id @default(cuid())
+  userId    Int
+  blogId    Int
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user   User   @relation(fields: [userId], references: [id])
+  blog   Blog   @relation(fields: [blogId], references: [id])
+
+  @@unique([userId, blogId]) // Ensure one saved blog per user per blog
+}
