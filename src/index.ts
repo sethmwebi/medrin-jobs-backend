@@ -17,7 +17,9 @@ import cors from "cors";
 import "dotenv/config";
 import { connectMongoDB } from "./config/database";
 
+
 import jobRoutes from "./routes/job";
+import paymentRoutes from "./routes/payment";
 import { validateJob } from "./middlewares/validateJob";
 import { errorHandler } from "./middlewares/errorHandler";
 import { Collection } from "mongoose";
@@ -45,9 +47,12 @@ const port = env.PORT;
 
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(validateJob);
+app.use(express.urlencoded({ extended: true }));
+
+
 
 app.use("/api/job", jobRoutes);
-
+app.use('/api/subscription/create',paymentRoutes)
 app.use(express.json());
 // app.use(helmet());
 // app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}))
@@ -61,6 +66,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(passport.initialize());
 app.use(morgan("dev"));
+app.use(express.json());
 
 // Enable cors for http://localhost:5173
 app.use(
