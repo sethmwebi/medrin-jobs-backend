@@ -23,7 +23,7 @@ const jobSchema = new Schema({
 		type: Number,
 		required: true,
 	},
-	work_type: {
+	workPlace_type: {
 		type: String,
 		required: true,
 	},
@@ -43,6 +43,10 @@ const jobSchema = new Schema({
 		type: Date,
 		default: Date.now,
 	},
+	workTime: {
+		type: String,
+		required: true,
+	}
 });
 
 type Job = InferSchemaType<typeof jobSchema>;

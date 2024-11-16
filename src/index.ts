@@ -37,7 +37,7 @@ export const DIGEST_AUTH = `${ATLAS_API_PUBLIC_KEY}:${ATLAS_API_PRIVATE_KEY}`;
 export const ATLAS_DATA_API_URL = `https://data.mongodb-api.com/i4huirbguwejgiw/app/endpoint/data/v1/action/aggregate`;
 export const USER_SEARCH_INDEX_NAME = "location-search";
 export const USER_AUTOCOMPLETE_INDEX_NAME = "location_autocomplete";
-require("./utils/passport-config.ts");
+require("./utils/passport-config");
 
 const app: Express = express();
 
@@ -45,8 +45,6 @@ const port = env.PORT;
 
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(validateJob);
-
-app.use("/api/job", jobRoutes);
 
 app.use(express.json());
 // app.use(helmet());
@@ -71,6 +69,8 @@ app.use(
 );
 
 app.use("/", authRouter);
+
+app.use("/api/job", jobRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome home!" });
@@ -119,7 +119,6 @@ export async function findIndexByName(indexName: string) {
       method: "GET",
       digestAuth: DIGEST_AUTH,
     });
-    console.log("Indexes Response:", allIndexesResponse.data);
     if (Array.isArray(allIndexesResponse.data)) {
       return allIndexesResponse.data.find((i) => i.name === indexName);
     } else {
@@ -214,9 +213,7 @@ connectMongoDB();
 (async () => {
   try {
     await prisma.$connect();
-    app.listen(port, () =>
-      console.log(`Server running on port http://127.0.0.1:${port}`),
-    );
+    app.listen(port, () => console.log(`Server running on port ${port}`));
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
     process.exit(1);
