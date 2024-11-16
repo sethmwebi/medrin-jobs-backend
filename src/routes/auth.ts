@@ -12,4 +12,10 @@ authRouter.get(
 );
 authRouter.get("/auth/google/callback", AuthControllers.google);
 
+authRouter.post("/forgot-password", AuthControllers.forgotPassword);
+authRouter.post("/reset-password/:token", AuthControllers.resetPassword);
+authRouter.post("/verify-email", AuthControllers.verifyEmail);
+authRouter.post("/logout", AuthControllers.logout);
+
+
 export default authRouter;
