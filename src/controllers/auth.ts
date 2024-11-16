@@ -7,9 +7,14 @@ import generateToken from "../utils/generate-token";
 import { LoginSchema } from "../schemas/LoginSchema";
 import { User } from "@prisma/client";
 import passport from "passport";
-import crypto from 'crypto'
+import crypto from "crypto";
 
-import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../sendgrid/email";
+import {
+  sendPasswordResetEmail,
+  sendResetSuccessEmail,
+  sendVerificationEmail,
+  sendWelcomeEmail,
+} from "../sendgrid/email";
 import { generateVerificationToken } from "../utils/generateVerificationToken";
 import { string } from "zod";
 
@@ -32,7 +37,7 @@ export const register: RequestHandler = async (req, res, next) => {
     //This is the password hashing spot
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const verificationToken = generateVerificationToken()
+    const verificationToken = generateVerificationToken();
 
     const user = await prisma.user.create({
       data: {
@@ -71,7 +76,10 @@ export const register: RequestHandler = async (req, res, next) => {
   }
 };
 
-export const verifyEmail = async (req: Request, res: Response): Promise<void> => {
+export const verifyEmail = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { code } = req.body;
   try {
     const user = await prisma.user.findFirst({
@@ -82,7 +90,10 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
     });
 
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid or expired verification code' });
+      res.status(400).json({
+        success: false,
+        message: "Invalid or expired verification code",
+      });
       return;
     }
 
@@ -95,11 +106,12 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       },
     });
 
-    await sendWelcomeEmail(user.email , user.name);
+    // @ts-ignore
+    await sendWelcomeEmail(user.email, user.name);
 
     res.status(200).json({
       success: true,
-      message: 'Email verified successfully',
+      message: "Email verified successfully",
       user: {
         ...user,
         password: undefined,
@@ -125,10 +137,7 @@ export const login: RequestHandler = async (req, res, next) => {
     }
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      throw createHttpError(
-        400,
-        "Invalid email or password",
-      );
+      throw createHttpError(400, "Invalid email or password");
     }
 
     const validPassword = await bcrypt.compare(password, user.password!);
@@ -189,24 +198,27 @@ export const google: RequestHandler = async (req, res, next) => {
 };
 
 export const logout = async (req: Request, res: Response): Promise<void> => {
-  res.clearCookie('token');
+  res.clearCookie("token");
   res.status(200).json({
     success: true,
-    message: 'Logged out successfully',
+    message: "Logged out successfully",
   });
 };
 
-export const forgotPassword = async (req: Request, res: Response): Promise<void> => {
+export const forgotPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   const { email } = req.body;
 
   try {
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user) {
-      res.status(400).json({ success: false, message: 'User not found' });
+      res.status(400).json({ success: false, message: "User not found" });
       return;
     }
 
-    const resetToken = crypto.randomBytes(20).toString('hex');
+    const resetToken = crypto.randomBytes(20).toString("hex");
     const resetTokenExpiresAt = new Date(Date.now() + 1 * 60 * 60 * 1000);
 
     await prisma.user.update({
@@ -219,19 +231,25 @@ export const forgotPassword = async (req: Request, res: Response): Promise<void>
 
     //Once the frontend is updated the client URL will also need to be updated
 
-    await sendPasswordResetEmail(user.email, `${process.env.CLIENT_URL}/reset-password/${resetToken}`);
+    await sendPasswordResetEmail(
+      user.email,
+      `${process.env.CLIENT_URL}/reset-password/${resetToken}`,
+    );
 
     res.status(200).json({
       success: true,
-      message: 'Password reset email sent successfully',
+      message: "Password reset email sent successfully",
     });
   } catch (error: any) {
-    console.log('Error in forgotPassword', error);
+    console.log("Error in forgotPassword", error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
 
-export const resetPassword = async (req: Request, res: Response): Promise<void> => {
+export const resetPassword = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
   try {
     const { token } = req.params;
     const { password } = req.body;
@@ -244,7 +262,9 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
     });
 
     if (!user) {
-      res.status(400).json({ success: false, message: 'Invalid or expired reset token' });
+      res
+        .status(400)
+        .json({ success: false, message: "Invalid or expired reset token" });
       return;
     }
 
@@ -262,9 +282,11 @@ export const resetPassword = async (req: Request, res: Response): Promise<void> 
 
     await sendResetSuccessEmail(user.email);
 
-    res.status(200).json({ success: true, message: 'Password reset successful' });
+    res
+      .status(200)
+      .json({ success: true, message: "Password reset successful" });
   } catch (error: any) {
-    console.log('Error in resetPassword ', error);
+    console.log("Error in resetPassword ", error);
     res.status(400).json({ success: false, message: error.message });
   }
 };
