@@ -37,7 +37,7 @@ export const DIGEST_AUTH = `${ATLAS_API_PUBLIC_KEY}:${ATLAS_API_PRIVATE_KEY}`;
 export const ATLAS_DATA_API_URL = `https://data.mongodb-api.com/i4huirbguwejgiw/app/endpoint/data/v1/action/aggregate`;
 export const USER_SEARCH_INDEX_NAME = "location-search";
 export const USER_AUTOCOMPLETE_INDEX_NAME = "location_autocomplete";
-require("./utils/passport-config.ts");
+require("./utils/passport-config");
 
 const app: Express = express();
 
