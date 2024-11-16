@@ -11,6 +11,7 @@ import crypto from 'crypto'
 
 import { sendPasswordResetEmail, sendResetSuccessEmail, sendVerificationEmail, sendWelcomeEmail } from "../sendgrid/email";
 import { generateVerificationToken } from "../utils/generateVerificationToken";
+import { string } from "zod";
 
 export const register: RequestHandler = async (req, res, next) => {
   try {
@@ -94,7 +95,7 @@ export const verifyEmail = async (req: Request, res: Response): Promise<void> =>
       },
     });
 
-    await sendWelcomeEmail(user.email, user.name);
+    await sendWelcomeEmail(user.email , user.name);
 
     res.status(200).json({
       success: true,

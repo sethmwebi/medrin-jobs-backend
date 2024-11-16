@@ -107,7 +107,7 @@ export const WELCOME_EMAIL_TEMPLATE = `
     <h1 style="color: white; margin: 0;">Welcome to Our App, {name}!</h1>
   </div>
   <div style="background-color: #f9f9f9; padding: 20px; border-radius: 0 0 5px 5px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-    <p>Hello {name},</p>
+    <p>Hello There,</p>
     <p>Thank you for joining us! We are excited to have you on board.</p>
     <p>To get started, here's a quick overview of what you can do:</p>
     <ul>
