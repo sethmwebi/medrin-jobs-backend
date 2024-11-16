@@ -1,7 +1,7 @@
 /** @format */
 
 import { stripe } from "../config/stripe";
-import { redis } from "../config/redis";  
+
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "..";
 import cron from "node-cron";
