@@ -1,6 +1,7 @@
 /** @format */
 
 export interface Job {
+	id:string;
 	title: string;
 	description: string;
 	category: string;
@@ -19,4 +20,7 @@ export interface User {
 	avatar: string;
 	registeredAt: Date;
 	country: string;
+}
+export interface AuthenticatedRequest extends Request {
+	user: { id: string };
 }
