@@ -46,8 +46,6 @@ const port = env.PORT;
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(validateJob);
 
-app.use("/api/job", jobRoutes);
-
 app.use(express.json());
 // app.use(helmet());
 // app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}))
@@ -71,6 +69,8 @@ app.use(
 );
 
 app.use("/", authRouter);
+
+app.use("/api/job", jobRoutes);
 
 app.get("/", (req, res) => {
   res.status(200).json({ message: "Welcome home!" });
