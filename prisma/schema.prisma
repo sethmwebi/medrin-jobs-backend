@@ -1,6 +1,6 @@
 datasource db {
   provider = "postgresql"
-  url      = .env("DATABASE_URL)
+  url      = env("DATABASE_URL")
 }
 
 generator client {
@@ -15,24 +15,24 @@ enum UserRole {
 }
 
 model User {
-  id            String        @id @default(cuid())
-  name          String?
-  email         String        @unique
-  emailVerified DateTime?
-  image         String?
-  password      String
-  lastLogin                 DateTime @default(now())
-  isVerified                Boolean  @default(false)
-  resetPasswordToken        String?
-  resetPasswordExpiresAt    DateTime?
-  verificationToken         String?
+  id                         String    @id @default(cuid())
+  name                       String?
+  email                      String    @unique
+  emailVerified              DateTime?
+  image                      String?
+  password                   String
+  lastLogin                  DateTime  @default(now())
+  isVerified                 Boolean   @default(false)
+  resetPasswordToken         String?
+  resetPasswordExpiresAt     DateTime?
+  verificationToken          String?
   verificationTokenExpiresAt DateTime?
 
-  role          UserRole // Directly use the enum here
-  profile       Json?
-  applications  Application[]
-  payments      Payment[]
-  accounts      Account[]
+  role         UserRole // Directly use the enum here
+  profile      Json?
+  applications Application[]
+  payments     Payment[]
+  accounts     Account[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
