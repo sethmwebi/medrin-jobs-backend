@@ -119,7 +119,6 @@ export async function findIndexByName(indexName: string) {
       method: "GET",
       digestAuth: DIGEST_AUTH,
     });
-    console.log("Indexes Response:", allIndexesResponse.data);
     if (Array.isArray(allIndexesResponse.data)) {
       return allIndexesResponse.data.find((i) => i.name === indexName);
     } else {
@@ -214,9 +213,7 @@ connectMongoDB();
 (async () => {
   try {
     await prisma.$connect();
-    app.listen(port, () =>
-      console.log(`Server running on port http://127.0.0.1:${port}`),
-    );
+    app.listen(port, () => console.log(`Server running on port ${port}`));
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
     process.exit(1);
