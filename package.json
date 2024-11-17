@@ -44,7 +44,6 @@
     "cloudinary": "^2.5.1",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "@sendgrid/mail": "^8.1.4",
     "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
     "helmet": "^8.0.0",
