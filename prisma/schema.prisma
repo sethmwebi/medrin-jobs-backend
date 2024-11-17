@@ -147,6 +147,8 @@ model Blog {
   likes    Like[]
   comments Comment[]
   saves    SavedBlog[]
+
+  @@map("blogs")
 }
 
 model Like {
