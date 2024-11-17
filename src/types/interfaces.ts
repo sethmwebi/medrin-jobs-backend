@@ -1,16 +1,15 @@
 /** @format */
 
 export interface Job {
-
 	id:string;
-	title: string;
-	description: string;
-	category: string;
-	workPlace_type: string;
-	location: string;
-	salary: number;
-	company: string;
-	email: string;
+  title: string;
+  description: string;
+  category: string;
+  workPlace_type: string;
+  location: string;
+  salary: number;
+  company: string;
+  email: string;
   contact: number;
   workTime: string;
   country?: string;

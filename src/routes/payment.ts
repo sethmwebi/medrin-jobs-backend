@@ -1,6 +1,6 @@
 /** @format */
 
-import express from "express";
+import express, { RequestHandler } from "express";
 import {
 	createPaymentIntent,
 	handlePaymentSuccess,
@@ -9,7 +9,7 @@ import {
 
 const router = express.Router();
 
-router.post("/create-payment-intent", createPaymentIntent);
+router.post("/payment-intent", createPaymentIntent as unknown as RequestHandler);
 router.post("/payment-success", handlePaymentSuccess);
 router.post("/create-subscription", createSubscription);
 
