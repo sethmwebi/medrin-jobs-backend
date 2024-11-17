@@ -57,7 +57,7 @@ export const register: RequestHandler = async (req, res, next) => {
       },
     });
 
-    const { accessToken, refreshToken } = generateToken(res, user);
+    const { accessToken } = await generateToken(res, user);
 
     // This is for verification
     await sendVerificationEmail(user.email, verificationToken);
@@ -70,7 +70,7 @@ export const register: RequestHandler = async (req, res, next) => {
       emailVerified,
       ...userData
     } = user;
-    res.status(201).json({ userData, accessToken, refreshToken });
+    res.status(201).json({ userData, accessToken });
   } catch (error) {
     next(error);
   }
@@ -153,8 +153,8 @@ export const login: RequestHandler = async (req, res, next) => {
       emailVerified,
       ...userData
     } = user;
-    const { accessToken, refreshToken } = generateToken(res, user);
-    res.status(201).json({ userData, accessToken, refreshToken });
+    const { accessToken } = await generateToken(res, user);
+    res.status(201).json({ userData, accessToken });
   } catch (error) {
     next(error);
   }

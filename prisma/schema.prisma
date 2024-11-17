@@ -27,6 +27,8 @@ model User {
   resetPasswordExpiresAt     DateTime?
   verificationToken          String?
   verificationTokenExpiresAt DateTime?
+  refreshToken               String?
+  refreshTokenExpiresAt      DateTime?
 
   role         UserRole // Directly use the enum here
   profile      Json?

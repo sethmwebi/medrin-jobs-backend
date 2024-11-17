@@ -1,6 +1,7 @@
 import { Response } from "express";
 import jwt from "jsonwebtoken";
 import validEnv from "./validEnv";
+import { prisma } from "..";
 
 export interface UserPayload {
   id: string;
@@ -9,7 +10,7 @@ export interface UserPayload {
 }
 
 // Generate both access and refresh tokens
-const generateToken = (res: Response, user: UserPayload) => {
+const generateToken = async (res: Response, user: UserPayload) => {
   const payload = { id: user.id, email: user.email, role: user.role };
 
   // Generate access token (shorter expiration)
@@ -22,12 +23,13 @@ const generateToken = (res: Response, user: UserPayload) => {
     expiresIn: "30d",
   });
 
-  // Set access token as an HTTP-only cookie
-  res.cookie("accessToken", accessToken, {
-    httpOnly: true,
-    secure: validEnv.NODE_ENV !== "development",
-    sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
+  // Set refresh token expiration date
+  const refreshTokenExpiresAt = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000); // 30 days
+
+  // update the user's refresh token in the database
+  await prisma.user.update({
+    where: { id: user.id },
+    data: { refreshToken, refreshTokenExpiresAt },
   });
 
   // Set refresh token as an HTTP-only cookie
@@ -38,7 +40,7 @@ const generateToken = (res: Response, user: UserPayload) => {
     maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
   });
 
-  return { accessToken, refreshToken };
+  return { accessToken };
 };
 
 export default generateToken;

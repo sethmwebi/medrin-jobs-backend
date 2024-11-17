@@ -19,7 +19,7 @@ import { oauthStrategyCallback } from "./oauthStrategyCallback";
 const cookieExtractor = (req: Request): string | null => {
   let token: string | null = null;
   if (req && req.cookies) {
-    token = req.cookies["accessToken"];
+    token = req.cookies["refreshToken"];
   }
   return token;
 };
