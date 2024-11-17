@@ -1,6 +1,8 @@
 import { PrismaClient } from '@prisma/client';
+import { prisma } from "../../";
 
-const prisma = new PrismaClient();
+
+// const prisma = new PrismaClient();
 
 export class BlogService {
   // Create a blog post with limit check
