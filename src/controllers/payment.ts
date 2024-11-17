@@ -1,33 +1,41 @@
 /** @format */
 
 import { stripe } from "../config/stripe";
-
+import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "..";
 import cron from "node-cron";
+import createHttpError from "http-errors";
 
 export const createPaymentIntent = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { id, amount } = req.body;
+	const { id,amount } = req.body;
 
 	try {
+		if (!id) {
+				return res.status(400).json({ error: `User ID is required here is your body ${req.body} and ${id}` });
+			}
 		// Step 1: Validate user from PostgreSQL
 		const user = await prisma.user.findUnique({ where: { id: id } });
+		
+		
 		if (!user) throw new Error("User not found");
-
 		// Step 2: Create a PaymentIntent
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: amount * 100,
 			currency: "usd",
-			metadata: { id },
+			payment_method: "tok_visa",
+			confirm: true,
+			metadata: { userId:id },
 		});
 
-		res.status(200).json({ clientSecret: paymentIntent.client_secret });
-	} catch (error) {
+		res.status(200).json({ clientSecret: paymentIntent.client_secret, id: paymentIntent.id });
+	} catch (error: any) {
 		next(error);
+		
 	}
 };
 
@@ -38,22 +46,23 @@ export const handlePaymentSuccess = async (req:Request, res:Response, next:NextF
 		const paymentIntent = await stripe.paymentIntents.retrieve(
 			paymentIntentId
 		);
-		const { userId, jobDetails } = paymentIntent.metadata;
+		const { userId} = paymentIntent.metadata;
 
+		
 		// Step 2: Save payment details to the database
 		await prisma.payment.create({
 			data: {
 				user_id: userId,
 				amount: paymentIntent.amount,
-				payment_method: paymentIntent.payment_method_types[0], // Assuming the first method used
-				payment_status: paymentIntent.status, // Can be 'succeeded', 'failed', etc.
+				payment_method: paymentIntent.payment_method_types[0], 
+				payment_status: paymentIntent.status, 
 				transactionId: paymentIntent.id, // Use Stripe's payment intent ID as the transaction ID
 			},
 		});
 
 		// Step 3: Start processing the job
 		res.status(200).json({
-			message: "Payment successful, job processing started",
+			message: "Payment successful, you can start posting jobs now",
 		});
 	} catch (error) {
 		next(error);
@@ -62,10 +71,10 @@ export const handlePaymentSuccess = async (req:Request, res:Response, next:NextF
 
 const getPriceId = (plan: string): string => {
 	const priceIds: { [key: string]: string } = {
-		Basic: "price_1QLrobB4ye5lKzaRFZjaZrX3...", // Replace with actual Stripe Price IDs
-		Pro: "price_1QLrpTB4ye5lKzaRc0uDnzyh...",
-		Premium: "price_1QLrqdB4ye5lKzaRhQ7V93U8...",
-		Enterprise: "price_1QLrtcB4ye5lKzaRMfziUjz5...",
+		Basic: "price_1QLrobB4ye5lKzaRFZjaZrX3",
+		Pro: "price_1QLrpTB4ye5lKzaRc0uDnzyh",
+		Premium: "price_1QLrqdB4ye5lKzaRhQ7V93U8",
+		Enterprise: "price_1QLrtcB4ye5lKzaRMfziUjz5",
 	};
 	return priceIds[plan] || "";
 };
@@ -75,24 +84,70 @@ export const createSubscription = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { id, plan } = req.body;
+	const { plan } = req.body;
 
 	try {
+		const token = req.header("Authorization")?.replace("Bearer ", "");
+		if (!token) {
+			throw createHttpError(401, "Authorization token required");
+		}
+
+		// Decode the token and extract the user ID
+		const decoded = jwt.decode(token);
+		if (!decoded || typeof decoded !== "object" || !decoded.id) {
+			throw createHttpError(401, "Invalid or missing user ID in token");
+		}
+
+		const id = decoded.id;
+
+		// Retrieve user from the database
 		const user = await prisma.user.findUnique({ where: { id } });
 		if (!user) throw new Error("User not found");
 
-		const stripeCustomer = await stripe.customers.create({
-			email: user.email,
+		// Retrieve payment method from the database
+		const payment = await prisma.payment.findFirst({
+			where: { user_id: id },
 		});
 
-		const planPriceId = getPriceId(plan); // Convert user-friendly plan to Stripe Price ID
+		// Check if the user already has a Stripe customer ID
+		let stripeCustomerId = user.stripeCustomerId;
+		if (!stripeCustomerId) {
+			// If no Stripe customer exists, create one
+			const stripeCustomer = await stripe.customers.create({
+				email: user.email,
+			});
+			stripeCustomerId = stripeCustomer.id;
+
+			// Save the Stripe customer ID in your database
+			await prisma.user.update({
+				where: { id },
+				data: { stripeCustomerId },
+			});
+		}
+		const paymentMethodId = "tok_visa";
+		
+
+		// Attach the payment method to the Stripe customer
+		await stripe.paymentMethods.attach(paymentMethodId, {
+			customer: stripeCustomerId,
+		});
+
+		// Set the payment method as the default for the Stripe customer
+		await stripe.customers.update(stripeCustomerId, {
+			invoice_settings: { default_payment_method: paymentMethodId },
+		});
+
+		// Get the Stripe price ID for the selected plan
+		const planPriceId = getPriceId(plan);
 		if (!planPriceId) throw new Error("Invalid plan selected");
 
+		// Create the subscription
 		const subscription = await stripe.subscriptions.create({
-			customer: stripeCustomer.id,
+			customer: stripeCustomerId,
 			items: [{ price: planPriceId }],
 		});
 
+		// Update the user record in the database with subscription details
 		await prisma.user.update({
 			where: { id },
 			data: {
@@ -100,19 +155,22 @@ export const createSubscription = async (
 				subscriptionStartDate: new Date(),
 				subscriptionEndDate: new Date(
 					new Date().setMonth(new Date().getMonth() + 1)
-				), // Set subscription end date to 1 month from now
+				), // Subscription end date 1 month from now
 				jobPostQuota: getPlanQuota(plan), // Function to determine quota based on plan
 			},
 		});
 
+		// Send success response
 		res.status(200).json({
 			message: "Subscription created successfully",
 			subscription,
 		});
-	} catch (error) {
-		next(error);
+	} catch (error: any) {
+		console.error(error);
+		res.status(500).json({ error: error.message });
 	}
 };
+
 
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
