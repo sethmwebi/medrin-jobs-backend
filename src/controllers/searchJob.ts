@@ -16,12 +16,12 @@ import job from "../models/job";
  * Searches for jobs based on the query parameters provided in the request.
  *
  * Utilizes a MongoDB aggregation pipeline to perform a search on the jobs
- * collection. If a country is specified, it will perform a compound search
- * combining the search query and the country. Otherwise, it searches using
+ * collection. If a location is specified, it will perform a compound search
+ * combining the search query and the location. Otherwise, it searches using
  * the search query across specified fields. The results are projected to
  * include relevant job details and sorted by search relevance.
  *
- * @param req - The request object containing query parameters `query` and `country`.
+ * @param req - The request object containing query parameters `query` and `location`.
  * @param res - The response object used to return the search results.
  * @param next - The next middleware function in the stack.
  *
@@ -36,7 +36,7 @@ export const searchJobs = async (
 	next: NextFunction
 ) => {
 	const searchQuery = req.query.query as string;
-	const country = req.query.country as string;
+	const location = req.query.location as string;
 
 	if (!searchQuery || searchQuery.length < 2) {
 		res.json([]);
@@ -44,7 +44,7 @@ export const searchJobs = async (
 	}
 	const pipeline = [];
 
-	if (country) {
+	if (location) {
 		pipeline.push({
 			$search: {
 				index: USER_SEARCH_INDEX_NAME,
@@ -56,7 +56,7 @@ export const searchJobs = async (
 								path: [
 									"title",
 									"description",
-									"country",
+									"location",
 									"company",
 									"category",
 								],
@@ -65,8 +65,8 @@ export const searchJobs = async (
 						},
 						{
 							text: {
-								query: country,
-								path: "country",
+								query: location,
+								path: "location",
 							},
 						},
 					],
@@ -79,7 +79,7 @@ export const searchJobs = async (
 				index: USER_SEARCH_INDEX_NAME,
 				text: {
 					query: searchQuery,
-					path: ["title", "country", "company"],
+					path: ["title", "location", "company"],
 					fuzzy: {},
 				},
 			},
@@ -92,12 +92,14 @@ export const searchJobs = async (
 			title: 1,
 			category: 1,
 			description: 1,
-			country: 1,
+			location: 1,
 			salary: 1,
 			company: 1,
 			email: 1,
 			contact: 1,
 			createdAt: 1,
+			workTime: 1,
+			workPlace_type: 1,
 		},
 	});
 
@@ -109,12 +111,12 @@ export const searchJobs = async (
 
 /**
  * Performs an autocomplete search on job titles based on the provided query
- * parameter. If a country is specified, it will perform a compound search
- * combining the search query and the country. Otherwise, it searches using
+ * parameter. If a location is specified, it will perform a compound search
+ * combining the search query and the location. Otherwise, it searches using
  * the search query across the job titles. The results are projected to
  * include relevant job details and sorted by search relevance.
  *
- * @param req - The request object containing query parameters `query` and `country`.
+ * @param req - The request object containing query parameters `query` and `location`.
  * @param res - The response object used to return the search results.
  * @param next - The next middleware function in the stack.
  *
@@ -125,11 +127,11 @@ export const searchJobs = async (
  */
 export const autocomplete: RequestHandler = async (req, res, next) => {
 	const searchQuery = req.query.query as string;
-	const country = req.query.country as string;
+	const location = req.query.location as string;
 
 	const pipeline = [];
 
-	if (country) {
+	if (location) {
 		pipeline.push({
 			$search: {
 				index: USER_SEARCH_INDEX_NAME,
@@ -144,8 +146,8 @@ export const autocomplete: RequestHandler = async (req, res, next) => {
 						},
 						{
 							text: {
-								query: country,
-								path: "country",
+								query: location,
+								path: "location",
 							},
 						},
 					],
@@ -170,7 +172,7 @@ export const autocomplete: RequestHandler = async (req, res, next) => {
 			_id: 0,
 			score: { $meta: "searchScore" },
 			description: 1,
-			country: 1,
+			location: 1,
 			salary: 1,
 			company: 1,
 			email: 1,
