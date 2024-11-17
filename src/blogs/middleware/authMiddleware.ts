@@ -1,26 +1,25 @@
 import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@prisma/client';
 
-const prisma = new PrismaClient();
-
+// Extend Request interface to include userId
 interface AuthRequest extends Request {
   userId?: string;
 }
 
 // Middleware to authenticate users
-export const authenticateUser = async (req: AuthRequest, res: Response, next: NextFunction) => {
+export const authenticateUser = async (req: AuthRequest, res: Response, next: NextFunction): Promise<void> => {
   const token = req.header('Authorization')?.split(' ')[1];
 
   if (!token) {
-    return res.status(401).json({ message: 'Access denied. No token provided.' });
+    res.status(401).json({ message: 'Access denied. No token provided.' });
+    return;
   }
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET as string) as { id: string };
-    req.userId = decoded.id;
-    next();
+    req.userId = decoded.id;  // Attach userId to req
+    next();  // Pass control to the next middleware/route handler
   } catch (error) {
-    return res.status(400).json({ message: 'Invalid token.' });
+    res.status(400).json({ message: 'Invalid token.' });
   }
 };
