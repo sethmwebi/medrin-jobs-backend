@@ -38,11 +38,6 @@ model User {
   verificationToken          String?
   verificationTokenExpiresAt DateTime?
 
-  role         UserRole // Directly use the enum here
-  profile      Json?
-  applications Application[]
-  payments     Payment[]
-  accounts     Account[]
 
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
