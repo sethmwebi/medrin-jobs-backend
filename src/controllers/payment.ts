@@ -27,14 +27,13 @@ export const createPaymentIntent = async (
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: amount * 100,
 			currency: "usd",
-			payment_method: "tok_visa",
-			confirm: true,
 			metadata: { userId:id },
 		});
 
 		res.status(200).json({ clientSecret: paymentIntent.client_secret, id: paymentIntent.id });
 	} catch (error: any) {
-		next(error);
+		console.error(error);
+		res.status(500).json({ error: error.message });
 		
 	}
 };
