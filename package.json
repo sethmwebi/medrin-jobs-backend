@@ -6,8 +6,9 @@
     "seed": "ts-node --transpile-only prisma/seed.ts"
   },
   "scripts": {
+    "build": "tsc && npx prisma generate",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "node ./dist/index.js",
+    "start": "node ./dist/src/index.js",
     "dev": "nodemon ./src/index.ts"
   },
   "keywords": [],
@@ -19,6 +20,7 @@
     "@types/bcryptjs": "^2.4.6",
     "@types/cookie-parser": "^1.4.7",
     "@types/cors": "^2.8.17",
+    "@types/crypto-js": "^4.2.2",
     "@types/express": "^5.0.0",
     "@types/http-errors": "^2.0.4",
     "@types/jsonwebtoken": "^9.0.7",
@@ -39,11 +41,17 @@
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "@sendgrid/mail": "^8.1.4",
+    "crypto": "^1.0.1",
+    "crypto-js": "^4.2.0",
+    "helmet": "^8.0.0",
+
+   
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
-    "helmet": "^8.0.0",
+   
     "http-errors": "^2.0.0",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
