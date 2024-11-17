@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { faker } from "@faker-js/faker";
+import { str } from "envalid";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,7 @@ async function main() {
         profile: { bio: faker.lorem.text() },
         createdAt: new Date(),
         updatedAt: new Date(),
+        stripeCustomerId: faker.datatype.uuid(),
       },
     });
   }
