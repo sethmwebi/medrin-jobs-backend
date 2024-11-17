@@ -6,6 +6,7 @@ import JobModel from "../models/job";
 import { Job } from "../types/interfaces";
 import mongoose from "mongoose";
 import createHttpError from "http-errors";
+import { prisma } from "..";
 
 
 /**
@@ -35,13 +36,13 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	res,
 	next
 ) => {
-	
 
+		const id = (req.user as Record<string, any>).id;
 	try {
 		if (
 			!req.body.title ||
 			!req.body.description ||
-			!req.body.country ||
+			!req.body.location ||
 			!req.body.salary ||
 			!req.body.company ||
 			!req.body.email ||
@@ -61,7 +62,7 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 				company: req.body.company,
 				email: req.body.email,
 				contact: req.body.contact,
-				country: req.body.country,
+				location: req.body.location,
 				salary: req.body.salary,
 				category: req.body.category,
 				description: req.body.description,
@@ -69,7 +70,20 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 		) {
 			throw createHttpError(400, "Job already exists");
 		}
-		const job = await JobModel.create(req.body);
+		  const user = await prisma.user.findUnique({ where: { id } });
+		if (!user) throw new Error("User not found");
+		
+		if (user.jobPostQuota <= 0) {
+			throw new Error(
+				"Job post quota exceeded. Upgrade your subscription or pay for additional posts."
+			);
+		}
+		const job = await JobModel.create(req.body,id);
+
+		 await prisma.user.update({
+				where: { id },
+				data: { jobPostQuota: user.jobPostQuota - 1 },
+			});
 		res.status(201).json(job);
 	} catch (error) {
 		next(error);

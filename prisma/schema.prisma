@@ -14,13 +14,23 @@ enum UserRole {
   EMPLOYER
 }
 
+
 model User {
-  id                         String    @id @default(cuid())
-  name                       String?
-  email                      String    @unique
-  emailVerified              DateTime?
-  image                      String?
-  password                   String
+  id            String        @id @default(cuid())
+  name          String?
+  email         String        @unique
+  emailVerified DateTime?
+  image         String?
+  password      String
+  role          UserRole // Directly use the enum here
+  subscriptionPlan        String    @default("Free Trial")  // Corresponds to subscription_plan
+  jobPostQuota            Int       @default(3)        // Corresponds to job_post_quota
+  subscriptionStartDate   DateTime?                    // Corresponds to subscription_start_date
+  subscriptionEndDate     DateTime?                    // Corresponds to subscription_end_date
+  profile       Json?
+  applications  Application[]
+  payments      Payment[]
+  accounts      Account[]
   lastLogin                  DateTime  @default(now())
   isVerified                 Boolean   @default(false)
   resetPasswordToken         String?
@@ -70,13 +80,30 @@ model ApplicationStatus {
   @@map("application_statuses")
 }
 
+enum PaymentStatus {
+  processing
+  succeeded
+  canceled
+  failed
+  requires_payment_method
+  requires_action
+  requires_capture
+  requires_confirmation
+}
+
+
+
 model Payment {
   id             String @id @default(cuid())
   user_id        String
   user           User   @relation(fields: [user_id], references: [id])
   amount         Float
   payment_method String
-  status         String
+  payment_status PaymentStatus @default(requires_payment_method) 
+  transactionId  String?
+
+  createdAt      DateTime @default(now())
+
 
   @@map("payments")
 }

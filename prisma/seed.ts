@@ -69,13 +69,20 @@ async function main() {
     });
 
     await prisma.payment.create({
-      data: {
-        user_id: user?.id ?? "",
-        amount: parseFloat(faker.finance.amount(10, 500, 2)),
-        payment_method: faker.finance.transactionType(),
-        status: faker.helpers.arrayElement(["Pending", "Completed", "Failed"]),
-      },
-    });
+		data: {
+			user_id: user?.id ?? "",
+			amount: parseFloat(faker.finance.amount(10, 500, 2)),
+			payment_method: faker.finance.transactionType(),
+      payment_status: faker.helpers.arrayElement([
+				"requires_payment_method",
+				"succeeded",
+				"failed",
+        "canceled",
+        "processing",
+			]),
+			transactionId: faker.datatype.uuid(),
+		},
+	});
   }
 
   // Seed Accounts
