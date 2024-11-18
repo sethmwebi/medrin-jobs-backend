@@ -151,6 +151,14 @@ export const login: RequestHandler = async (req, res, next) => {
       createdAt,
       updatedAt,
       emailVerified,
+      refreshToken,
+      refreshTokenExpiresAt,
+      profile,
+      resetPasswordToken,
+      resetPasswordExpiresAt,
+      lastLogin,
+      verificationToken,
+      verificationTokenExpiresAt,
       ...userData
     } = user;
     const { accessToken } = await generateToken(res, user);
