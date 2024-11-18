@@ -1,12 +1,15 @@
 /** @format */
-
+import axios from "axios";
 import { stripe } from "../config/stripe";
 import jwt from "jsonwebtoken";
 import { NextFunction, Request, Response } from "express";
 import { prisma } from "..";
 import cron from "node-cron";
 import createHttpError from "http-errors";
+import moment from "moment";
 
+
+// Stripe 
 export const createPaymentIntent = async (
 	req: Request,
 	res: Response,
@@ -166,6 +169,98 @@ export const createSubscription = async (
 	}
 };
 
+export const cancelSubscription = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { id } = req.params;
+		const subscription = await stripe.subscriptions.retrieve(id);
+		await stripe.subscriptions.update(id, { cancel_at_period_end: true });
+		res.status(200).json({
+			message: "Subscription cancelled successfully",
+			subscription,
+		});
+	} catch (error) {
+		next(error);
+	}
+};
+
+//M-PESA
+
+const generateAccessToken = async (): Promise<string> => {
+	const consumerKey = process.env.CONSUMER_KEY;
+	const consumerSecret = process.env.CONSUMER_SECRET;
+	const auth = Buffer.from(`${consumerKey}:${consumerSecret}`).toString(
+		"base64"
+	);
+
+	const response = await axios.get(
+		"https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials",
+		{
+			headers: { Authorization: `Basic ${auth}` },
+		}
+	);
+
+	return response.data.access_token;
+};
+export const stkPush = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const { phoneNumber, amount } = req.body;
+
+		if (!phoneNumber || !amount) {
+			return res
+				.status(400)
+				.json({ error: "Phone number and amount are required." });
+		}
+
+		const accessToken = await generateAccessToken();
+
+		const businessShortCode = "174379";
+		const passkey = "YOUR_PASSKEY";
+		const timestamp = new Date()
+			.toISOString()
+			.replace(/[-:T.]/g, "")
+			.slice(0, -3);
+		const password = Buffer.from(
+			`${businessShortCode}${passkey}${timestamp}`
+		).toString("base64");
+
+		const data = {
+			BusinessShortCode: businessShortCode,
+			Password: password,
+			Timestamp: timestamp,
+			TransactionType: "CustomerPayBillOnline",
+			Amount: amount,
+			PartyA: phoneNumber,
+			PartyB: businessShortCode,
+			PhoneNumber: phoneNumber,
+			CallBackURL: "https://yourdomain.com/api/daraja/stk/callback",
+			AccountReference: "YourAppName",
+			TransactionDesc: "Payment for goods/services",
+		};
+
+		const response = await axios.post(
+			"https://sandbox.safaricom.co.ke/mpesa/stkpush/v1/processrequest",
+			data,
+			{
+				headers: {
+					Authorization: `Bearer ${accessToken}`,
+					"Content-Type": "application/json",
+				},
+			}
+		);
+
+		res.status(200).json(response.data);
+	} catch (error) {
+		next(error);
+	}
+};
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
 		Free_Trial: 3,

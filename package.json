@@ -37,24 +37,22 @@
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",
+    "@sendgrid/mail": "^8.1.4",
     "axios": "^1.7.7",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
-    "@sendgrid/mail": "^8.1.4",
     "crypto": "^1.0.1",
     "crypto-js": "^4.2.0",
-    "helmet": "^8.0.0",
-
-   
     "dotenv": "^16.4.5",
     "envalid": "^8.0.0",
     "express": "^4.21.1",
     "express-validator": "^7.2.0",
-   
+    "helmet": "^8.0.0",
     "http-errors": "^2.0.0",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
+    "moment": "^2.30.1",
     "mongoose": "^8.8.1",
     "morgan": "^1.10.0",
     "node-cron": "^3.0.3",
