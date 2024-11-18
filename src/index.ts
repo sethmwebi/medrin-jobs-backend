@@ -24,6 +24,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { Collection } from "mongoose";
 import axios from "axios";
 import { request } from "urllib";
+import refreshRouter from "./routes/refresh";
 
 export const MONGODB_DATABASE = process.env.MONGO_DATABASE;
 export const MONGODB_COLLECTION = process.env.MONGO_COLLECTION;
@@ -76,6 +77,7 @@ app.use(
 );
 
 app.use("/", authRouter);
+app.use("/", refreshRouter);
 
 app.use("/api/job", jobRoutes);
 
