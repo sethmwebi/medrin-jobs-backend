@@ -12,61 +12,67 @@ export const createPaymentIntent = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { id,amount } = req.body;
+	const { id, amount } = req.body;
 
 	try {
 		if (!id) {
-				return res.status(400).json({ error: `User ID is required here is your body ${req.body} and ${id}` });
-			}
-		// Step 1: Validate user from PostgreSQL
+			return res
+				.status(400)
+				.json({
+					error: `User ID is required here is your body ${req.body} and ${id}`,
+				});
+		}
+	
 		const user = await prisma.user.findUnique({ where: { id: id } });
-		
-		
+
 		if (!user) throw new Error("User not found");
-		// Step 2: Create a PaymentIntent
+	
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: amount * 100,
 			currency: "usd",
-			metadata: { userId:id },
+			metadata: { userId: id },
 		});
 
-		res.status(200).json({ clientSecret: paymentIntent.client_secret, id: paymentIntent.id });
+		res.status(200).json({
+			clientSecret: paymentIntent.client_secret,
+			id: paymentIntent.id,
+		});
 	} catch (error: any) {
 		console.error(error);
 		res.status(500).json({ error: error.message });
-		
 	}
 };
 
-export const handlePaymentSuccess = async (req:Request, res:Response, next:NextFunction) => {
+export const handlePaymentSuccess = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
 	const { paymentIntentId } = req.body;
 	try {
-		// Step 1: Retrieve PaymentIntent details
 		const paymentIntent = await stripe.paymentIntents.retrieve(
 			paymentIntentId
 		);
-		const { userId} = paymentIntent.metadata;
+		const { userId } = paymentIntent.metadata;
 
-		
-		// Step 2: Save payment details to the database
+		// Save payment details to the database
 		await prisma.payment.create({
 			data: {
 				user_id: userId,
 				amount: paymentIntent.amount,
-				payment_method: paymentIntent.payment_method_types[0], 
-				payment_status: paymentIntent.status, 
+				payment_method: paymentIntent.payment_method_types[0],
+				payment_status: paymentIntent.status,
 				transactionId: paymentIntent.id, // Use Stripe's payment intent ID as the transaction ID
 			},
 		});
 
-		// Step 3: Start processing the job
 		res.status(200).json({
-			message: "Payment successful, you can start posting jobs now",
+			message: "Payment successful",
 		});
 	} catch (error) {
 		next(error);
 	}
-}
+};
 
 const getPriceId = (plan: string): string => {
 	const priceIds: { [key: string]: string } = {
@@ -91,7 +97,6 @@ export const createSubscription = async (
 			throw createHttpError(401, "Authorization token required");
 		}
 
-		// Decode the token and extract the user ID
 		const decoded = jwt.decode(token);
 		if (!decoded || typeof decoded !== "object" || !decoded.id) {
 			throw createHttpError(401, "Invalid or missing user ID in token");
@@ -99,44 +104,36 @@ export const createSubscription = async (
 
 		const id = decoded.id;
 
-		// Retrieve user from the database
 		const user = await prisma.user.findUnique({ where: { id } });
 		if (!user) throw new Error("User not found");
 
-		// Retrieve payment method from the database
 		const payment = await prisma.payment.findFirst({
 			where: { user_id: id },
 		});
 
-		// Check if the user already has a Stripe customer ID
 		let stripeCustomerId = user.stripeCustomerId;
 		if (!stripeCustomerId) {
-			// If no Stripe customer exists, create one
 			const stripeCustomer = await stripe.customers.create({
 				email: user.email,
 			});
 			stripeCustomerId = stripeCustomer.id;
 
-			// Save the Stripe customer ID in your database
 			await prisma.user.update({
 				where: { id },
 				data: { stripeCustomerId },
 			});
 		}
 		const paymentMethodId = "tok_visa";
-		
 
-		// Attach the payment method to the Stripe customer
 		await stripe.paymentMethods.attach(paymentMethodId, {
 			customer: stripeCustomerId,
 		});
 
-		// Set the payment method as the default for the Stripe customer
 		await stripe.customers.update(stripeCustomerId, {
 			invoice_settings: { default_payment_method: paymentMethodId },
 		});
 
-		// Get the Stripe price ID for the selected plan
+		// Get the Stripe price ID for the selected plan ::f(x) for the plan is line 77
 		const planPriceId = getPriceId(plan);
 		if (!planPriceId) throw new Error("Invalid plan selected");
 
@@ -155,11 +152,10 @@ export const createSubscription = async (
 				subscriptionEndDate: new Date(
 					new Date().setMonth(new Date().getMonth() + 1)
 				), // Subscription end date 1 month from now
-				jobPostQuota: getPlanQuota(plan), // Function to determine quota based on plan
+				jobPostQuota: getPlanQuota(plan),
 			},
 		});
 
-		// Send success response
 		res.status(200).json({
 			message: "Subscription created successfully",
 			subscription,
@@ -169,7 +165,6 @@ export const createSubscription = async (
 		res.status(500).json({ error: error.message });
 	}
 };
-
 
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
