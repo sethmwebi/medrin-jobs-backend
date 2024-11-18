@@ -81,7 +81,7 @@ const getPriceId = (plan: string): string => {
 	const priceIds: { [key: string]: string } = {
 		Basic: "price_1QLrobB4ye5lKzaRFZjaZrX3",
 		Pro: "price_1QLrpTB4ye5lKzaRc0uDnzyh",
-		Premium: "price_1QLrqdB4ye5lKzaRhQ7V93U8",
+
 		Enterprise: "price_1QLrtcB4ye5lKzaRMfziUjz5",
 	};
 	return priceIds[plan] || "";
