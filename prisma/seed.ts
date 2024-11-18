@@ -1,5 +1,6 @@
 import { PrismaClient } from "@prisma/client";
 import { faker } from "@faker-js/faker";
+import { str } from "envalid";
 
 const prisma = new PrismaClient();
 
@@ -19,6 +20,7 @@ async function main() {
         profile: { bio: faker.lorem.text() },
         createdAt: new Date(),
         updatedAt: new Date(),
+        stripeCustomerId: faker.datatype.uuid(),
       },
     });
   }
@@ -69,13 +71,20 @@ async function main() {
     });
 
     await prisma.payment.create({
-      data: {
-        user_id: user?.id ?? "",
-        amount: parseFloat(faker.finance.amount(10, 500, 2)),
-        payment_method: faker.finance.transactionType(),
-        status: faker.helpers.arrayElement(["Pending", "Completed", "Failed"]),
-      },
-    });
+		data: {
+			user_id: user?.id ?? "",
+			amount: parseFloat(faker.finance.amount(10, 500, 2)),
+			payment_method: faker.finance.transactionType(),
+      payment_status: faker.helpers.arrayElement([
+				"requires_payment_method",
+				"succeeded",
+				"failed",
+        "canceled",
+        "processing",
+			]),
+			transactionId: faker.datatype.uuid(),
+		},
+	});
   }
 
   // Seed Accounts

@@ -1,12 +1,12 @@
 /** @format */
 // CRUD Operations for jobs
-
+import jwt from "jsonwebtoken";
 import { RequestHandler } from "express";
 import JobModel from "../models/job";
 import { Job } from "../types/interfaces";
 import mongoose from "mongoose";
 import createHttpError from "http-errors";
-
+import { prisma } from "..";
 
 /**
  * Handles GET /api/job requests.
@@ -30,30 +30,41 @@ export const getJob: RequestHandler = async (req, res, next) => {
  *
 
  */
-export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
+export const postJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	req,
 	res,
 	next
 ) => {
-	
-
 	try {
-		if (
-			!req.body.title ||
-			!req.body.description ||
-			!req.body.country ||
-			!req.body.salary ||
-			!req.body.company ||
-			!req.body.email ||
-			!req.body.contact
-		) {
-			throw createHttpError(400, "All fields are required");
+		if (!req.body.workPlace_type) {
+			throw createHttpError(400, "Work place type is required");
+		}
+		if (!req.body.title) {
+			throw createHttpError(400, "Title is required");
+		}
+		if (!req.body.description) {
+			throw createHttpError(400, "Description is required");
+		}
+		if (!req.body.category) {
+			throw createHttpError(400, "Category is required");
+		}
+		if (!req.body.location) {
+			throw createHttpError(400, "Location is required");
+		}
+		if (!req.body.company) {
+			throw createHttpError(400, "Company is required");
+		}
+		if (!req.body.email) {
+			throw createHttpError(400, "Email is required");
+		}
+		if (!req.body.contact) {
+			throw createHttpError(400, "Contact is required");
+		}
+		if (!req.body.workTime) {
+			throw createHttpError(400, "Work time is required");
 		}
 		if (req.body.salary < 0) {
 			throw createHttpError(400, "Salary cannot be negative");
-		}
-		if (req.body.contact < 0) {
-			throw createHttpError(400, "Contact cannot be negative");
 		}
 		if (
 			await JobModel.exists({
@@ -61,18 +72,47 @@ export const createJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 				company: req.body.company,
 				email: req.body.email,
 				contact: req.body.contact,
-				country: req.body.country,
+				location: req.body.location,
 				salary: req.body.salary,
 				category: req.body.category,
 				description: req.body.description,
+				workPlace_type: req.body.workPlace_type,
+				workTime: req.body.workTime,
 			})
 		) {
 			throw createHttpError(400, "Job already exists");
 		}
-		const job = await JobModel.create(req.body);
+
+		const token = req.header("Authorization")?.replace("Bearer ", "");
+		if (!token) {
+			throw createHttpError(401, "Authorization token required");
+		}
+
+		// Decode the token and extract the user ID
+		const decoded = jwt.decode(token);
+		if (!decoded || typeof decoded !== "object" || !decoded.id) {
+			throw createHttpError(401, "Invalid or missing user ID in token");
+		}
+		const id = decoded.id;
+
+		const user = await prisma.user.findUnique({ where: { id } });
+		if (!user) throw new Error("User not found");
+
+		if (user.jobPostQuota <= 0) {
+			throw new Error(
+				"Job post quota exceeded. Upgrade your subscription or pay for additional posts."
+			);
+		}
+const job = await JobModel.create({ ...req.body, user_id: id });
+		await prisma.user.update({
+			where: { id },
+			data: { jobPostQuota: user.jobPostQuota - 1 },
+		});
 		res.status(201).json(job);
-	} catch (error) {
-		next(error);
+	} catch (error: any) {
+		console.error(error);
+		res.status(500).json({ error: error.message });
+		
 	}
 };
 

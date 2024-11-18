@@ -9,7 +9,7 @@ router.get("/autocomplete", searchController.autocomplete);
 router.post("/postBulk", jobController.bulkPostJobs);
 router.get("/", jobController.getJob);
 router.get("/:id", jobController.getJobById);
-router.post("/", jobController.createJob);
+router.post("/postJob", jobController.postJob);
 router.delete("/:id", jobController.deleteJobById);
 router.patch("/:id", jobController.updateJobById);
 
