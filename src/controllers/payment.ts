@@ -261,6 +261,21 @@ export const stkPush = async (
 		next(error);
 	}
 };
+
+
+export const handleCallback = (req: Request, res: Response) => {
+	const {
+		Body: { stkCallback },
+	} = req.body;
+
+	if (stkCallback.ResultCode === 0) {
+		console.log(stkCallback.CallbackMetadata);
+	} else {
+		console.error(stkCallback.ResultDesc);
+	}
+
+	res.status(200).send("OK");
+};
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
 		Free_Trial: 3,
