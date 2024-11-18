@@ -38,8 +38,12 @@ model User {
   resetPasswordExpiresAt     DateTime?
   verificationToken          String?
   verificationTokenExpiresAt DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+  Blog      Blog[]
+  Like      Like[]
+  Comment   Comment[]
+  SavedBlog SavedBlog[]
 
   @@map("users")
 }
@@ -127,4 +131,61 @@ model VerificationToken {
 
   @@id([identifier, token])
   @@map("verification_tokens")
+}
+
+model Blog {
+  id        String   @id @default(cuid())
+  title     String
+  image     String?
+  post      String
+  userId    String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User        @relation(fields: [userId], references: [id])
+  likes    Like[]
+  comments Comment[]
+  saves    SavedBlog[]
+
+  @@map("blogs")
+}
+
+model Like {
+  id        String   @id @default(cuid())
+  userId    String
+  blogId    String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  blog Blog @relation(fields: [blogId], references: [id])
+
+  @@unique([userId, blogId])
+  @@index([userId, blogId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  userId    String
+  blogId    String
+  comment   String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+  blog Blog @relation(fields: [blogId], references: [id])
+
+  @@index([userId, blogId])
+}
+
+model SavedBlog {
+  id        String   @id @default(cuid())
+  userId    String
+  blogId    String
+  createdAt DateTime @default(now())
+
+  // Relationships
+  user User @relation(fields: [userId], references: [id])
+  blog Blog @relation(fields: [blogId], references: [id])
+
+  @@unique([userId, blogId]) // Ensure one saved blog per user per blog
+  @@index([userId, blogId])
 }

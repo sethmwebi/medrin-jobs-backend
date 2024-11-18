@@ -47,11 +47,10 @@ const port = env.PORT;
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-
-
-
+ 
 app.use("/api/job", jobRoutes);
 app.use('/subscription',paymentRoutes)
+
 
 // app.use(helmet());
 // app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}))
