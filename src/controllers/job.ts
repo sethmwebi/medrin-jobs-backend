@@ -96,14 +96,14 @@ export const postJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 		const id = decoded.id;
 
 		const user = await prisma.user.findUnique({ where: { id } });
-		if (!user) throw new Error("User not found");
+		if (!user) throw new Error("User not found.Please Log in");
 
 		if (user.jobPostQuota <= 0) {
 			throw new Error(
 				"Job post quota exceeded. Upgrade your subscription or pay for additional posts."
 			);
 		}
-const job = await JobModel.create({ ...req.body, user_id: id });
+		const job = await JobModel.create({ ...req.body, user_id: id });
 		await prisma.user.update({
 			where: { id },
 			data: { jobPostQuota: user.jobPostQuota - 1 },
@@ -112,7 +112,6 @@ const job = await JobModel.create({ ...req.body, user_id: id });
 	} catch (error: any) {
 		console.error(error);
 		res.status(500).json({ error: error.message });
-		
 	}
 };
 
