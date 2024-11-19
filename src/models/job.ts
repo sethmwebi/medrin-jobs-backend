@@ -3,6 +3,10 @@ import { count } from "console";
 import { InferSchemaType, model, Schema } from "mongoose";
 
 const jobSchema = new Schema({
+	user_id: {
+		type: String,
+		required: true,
+	},
 	title: {
 		type: String,
 		required: true,
