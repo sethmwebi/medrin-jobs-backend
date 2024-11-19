@@ -8,8 +8,7 @@ import cron from "node-cron";
 import createHttpError from "http-errors";
 import moment from "moment";
 
-
-// Stripe 
+// Stripe
 export const createPaymentIntent = async (
 	req: Request,
 	res: Response,
@@ -19,17 +18,15 @@ export const createPaymentIntent = async (
 
 	try {
 		if (!id) {
-			return res
-				.status(400)
-				.json({
-					error: `User ID is required here is your body ${req.body} and ${id}`,
-				});
+			return res.status(400).json({
+				error: `User ID is required here is your body ${req.body} and ${id}`,
+			});
 		}
-	
+
 		const user = await prisma.user.findUnique({ where: { id: id } });
 
 		if (!user) throw new Error("User not found");
-	
+
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: amount * 100,
 			currency: "usd",
@@ -65,7 +62,7 @@ export const handlePaymentSuccess = async (
 				amount: paymentIntent.amount,
 				payment_method: paymentIntent.payment_method_types[0],
 				payment_status: paymentIntent.status,
-				transactionId: paymentIntent.id, // Use Stripe's payment intent ID as the transaction ID
+				transactionId: paymentIntent.id, 
 			},
 		});
 
@@ -81,7 +78,6 @@ const getPriceId = (plan: string): string => {
 	const priceIds: { [key: string]: string } = {
 		Basic: "price_1QLrobB4ye5lKzaRFZjaZrX3",
 		Pro: "price_1QLrpTB4ye5lKzaRc0uDnzyh",
-
 		Enterprise: "price_1QLrtcB4ye5lKzaRMfziUjz5",
 	};
 	return priceIds[plan] || "";
@@ -202,31 +198,50 @@ const generateAccessToken = async (): Promise<string> => {
 			headers: { Authorization: `Basic ${auth}` },
 		}
 	);
-
+	console.log(response.data.accesstoken);
 	return response.data.access_token;
 };
+
+const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
+	Basic: { kes: 1, usd: 10 },
+	Pro: { kes: 1000, usd: 150},
+	Enterprise: { kes: 3000, usd: 1000 },
+};
+
+const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
+	const prices = subscriptionPrices[plan];
+	if (!prices) throw new Error("Invalid subscription plan");
+	return prices[currency];
+};
+
 export const stkPush = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
 	try {
-		const { phoneNumber, amount } = req.body;
+		const { phoneNumber, plan } = req.body;
 
-		if (!phoneNumber || !amount) {
+		if (!phoneNumber || !plan) {
 			return res
 				.status(400)
-				.json({ error: "Phone number and amount are required." });
+				.json({ error: "Phone number and plan are required." });
 		}
 
 		const accessToken = await generateAccessToken();
 
-		const businessShortCode = "174379";
-		const passkey = "YOUR_PASSKEY";
-		const timestamp = new Date()
-			.toISOString()
-			.replace(/[-:T.]/g, "")
-			.slice(0, -3);
+		const amount = getPlanPrice(plan, "kes");
+
+		const businessShortCode = process.env.BUSINESS_SHORTCODE;
+		const passkey = process.env.PASSKEY;
+		const date = new Date();
+		const timestamp =
+			date.getFullYear() +
+			("0" + (date.getMonth() + 1)).slice(-2) +
+			("0" + date.getDate()).slice(-2) +
+			("0" + date.getHours()).slice(-2) +
+			("0" + date.getMinutes()).slice(-2) +
+			("0" + date.getSeconds()).slice(-2);
 		const password = Buffer.from(
 			`${businessShortCode}${passkey}${timestamp}`
 		).toString("base64");
@@ -240,9 +255,9 @@ export const stkPush = async (
 			PartyA: phoneNumber,
 			PartyB: businessShortCode,
 			PhoneNumber: phoneNumber,
-			CallBackURL: "https://yourdomain.com/api/daraja/stk/callback",
-			AccountReference: "YourAppName",
-			TransactionDesc: "Payment for goods/services",
+			CallBackURL: process.env.CALLBACK_URL,
+			AccountReference: "Medrin Jobs",
+			TransactionDesc: "Payment for a service",
 		};
 
 		const response = await axios.post(
@@ -257,11 +272,11 @@ export const stkPush = async (
 		);
 
 		res.status(200).json(response.data);
-	} catch (error) {
-		next(error);
+	} catch (error: any) {
+		console.error(error);
+		res.status(500).json({ error: error.message });
 	}
 };
-
 
 export const handleCallback = (req: Request, res: Response) => {
 	const {
@@ -279,9 +294,9 @@ export const handleCallback = (req: Request, res: Response) => {
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
 		Free_Trial: 3,
-		Basic: 5,
-		Pro: 10,
-		Premium: 20,
+		Basic: 20,
+		Pro: Infinity,
+		Enterprise: Infinity,
 	};
 	return quotas[plan] || 0;
 };
@@ -296,18 +311,34 @@ cron.schedule("0 0 1 * *", async () => {
 		const users = await prisma.user.findMany({
 			where: { subscriptionEndDate: { lte: new Date() } },
 		});
-		for (const user of users) {
+const planDuration = {
+	Free_Trial: 0, 
+	Basic: 1, 
+	Pro: 1,
+	Enterprise: 12,
+};
+
+ for (const user of users) {
+		const duration =
+			planDuration[user.subscriptionPlan as keyof typeof planDuration] ||
+			0;
+
+		if (duration > 0) {
+			const subscriptionEndDate = new Date();
+			subscriptionEndDate.setMonth(
+				subscriptionEndDate.getMonth() + duration
+			);
+
 			await prisma.user.update({
 				where: { id: user.id },
 				data: {
-					jobPostQuota: getPlanQuota(user.subscriptionPlan), // Reset quota dynamically
 					subscriptionStartDate: new Date(),
-					subscriptionEndDate: new Date(
-						new Date().setMonth(new Date().getMonth() + 1)
-					), // Extend subscription
+					subscriptionEndDate,
+					jobPostQuota: getPlanQuota(user.subscriptionPlan), 
 				},
 			});
 		}
+ }
 		console.log("Cron job executed successfully: Subscriptions updated");
 	} catch (error) {
 		console.error("Error in subscription cron job:", error);
