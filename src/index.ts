@@ -79,8 +79,9 @@ app.use("/", authRouter);
 app.use("/api/job", jobRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "Welcome home!" });
+  res.status(200).json({ message: "Welcome to the API", token: req.headers['authorization'] });
 });
+
 app.get("/protected", auth, (req, res, next) => {
   res.status(200).send("Protected route access granted!");
 });

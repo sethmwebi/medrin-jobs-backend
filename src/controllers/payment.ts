@@ -2,12 +2,11 @@
 import axios from "axios";
 import { stripe } from "../config/stripe";
 import jwt from "jsonwebtoken";
-import { NextFunction, Request, Response } from "express";
+import { NextFunction, Request, RequestHandler, Response } from "express";
 import { prisma } from "..";
 import cron from "node-cron";
 import createHttpError from "http-errors";
-import moment from "moment";
-
+import { stringify } from "flatted";
 // Stripe
 export const createPaymentIntent = async (
 	req: Request,
@@ -41,9 +40,7 @@ export const createPaymentIntent = async (
 		console.error(error);
 		res.status(500).json({ error: error.message });
 	}
-};
-
-export const handlePaymentSuccess = async (
+};export const handlePaymentSuccess :RequestHandler = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
@@ -62,7 +59,7 @@ export const handlePaymentSuccess = async (
 				amount: paymentIntent.amount,
 				payment_method: paymentIntent.payment_method_types[0],
 				payment_status: paymentIntent.status,
-				transactionId: paymentIntent.id, 
+				transactionId: paymentIntent.id,
 			},
 		});
 
@@ -202,17 +199,6 @@ const generateAccessToken = async (): Promise<string> => {
 	return response.data.access_token;
 };
 
-const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
-	Basic: { kes: 1, usd: 10 },
-	Pro: { kes: 1000, usd: 150},
-	Enterprise: { kes: 3000, usd: 1000 },
-};
-
-const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
-	const prices = subscriptionPrices[plan];
-	if (!prices) throw new Error("Invalid subscription plan");
-	return prices[currency];
-};
 
 export const stkPush = async (
 	req: Request,
@@ -255,7 +241,8 @@ export const stkPush = async (
 			PartyA: phoneNumber,
 			PartyB: businessShortCode,
 			PhoneNumber: phoneNumber,
-			CallBackURL: process.env.CALLBACK_URL,
+			CallBackURL:
+				"https://cd9d-80-240-201-167.ngrok-free.app/subscription/callback",
 			AccountReference: "Medrin Jobs",
 			TransactionDesc: "Payment for a service",
 		};
@@ -278,19 +265,142 @@ export const stkPush = async (
 	}
 };
 
-export const handleCallback = (req: Request, res: Response) => {
-	const {
-		Body: { stkCallback },
-	} = req.body;
-
-	if (stkCallback.ResultCode === 0) {
-		console.log(stkCallback.CallbackMetadata);
-	} else {
-		console.error(stkCallback.ResultDesc);
-	}
-
-	res.status(200).send("OK");
+const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
+	Basic: { kes: 1, usd: 10 },
+	Pro: { kes: 1000, usd: 150 },
+	Enterprise: { kes: 3000, usd: 1000 },
 };
+
+const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
+	const prices = subscriptionPrices[plan];
+	if (!prices) throw new Error("Invalid subscription plan");
+	return prices[currency];
+};
+
+
+export const handleMpesaCallback = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		// Assuming callback data is in the request body
+		const callbackData = req.body;
+
+		console.log("Callback Data:", callbackData);
+
+		const userId = "cm3ogu4ab0000waz4ucu8d8kg"; // Replace with actual user ID extraction logic
+
+		if (!userId) {
+			console.error("User ID not found");
+			return res.status(400).json({
+				status: "error",
+				message: "User ID not found",
+			});
+		}
+
+		const { stkCallback } = callbackData.Body;
+
+		if (stkCallback.ResultCode === 0) {
+			// Extract payment details
+			const metadata = stkCallback.CallbackMetadata.Item;
+			const transactionDetails = {
+				amount: metadata.find((item: any) => item.Name === "Amount")
+					?.Value,
+				mpesaReceiptNumber: metadata.find(
+					(item: any) => item.Name === "MpesaReceiptNumber"
+				)?.Value,
+				transactionDate: metadata.find(
+					(item: any) => item.Name === "TransactionDate"
+				)?.Value,
+				phoneNumber: metadata.find(
+					(item: any) => item.Name === "PhoneNumber"
+				)?.Value,
+			};
+
+			console.log("Payment successful:", transactionDetails);
+
+			// Assuming prisma is configured for database access
+			const user = await prisma.user.findUnique({
+				where: { id: userId },
+			});
+
+			if (!user) {
+				console.error("User not found for userId:", userId);
+				return res.status(404).json({
+					status: "error",
+					message: "User not found",
+				});
+			}
+
+      let plan: string | undefined;
+      try {
+        // Use the getPlanPrice function to determine the plan
+        if (transactionDetails.amount) {
+          const amountInKes = transactionDetails.amount; // Assuming the amount is in KES
+          for (const planName in subscriptionPrices) {
+            if (subscriptionPrices[planName].kes === amountInKes) {
+              plan = planName;
+              break;
+            }
+          }
+        }
+
+        if (!plan) {
+          throw new Error("Invalid payment amount for subscription plan");
+				}
+			} catch (error) {
+				console.error("Error determining subscription plan:", error);
+			}
+
+			await prisma.user.update({
+				where: { id: user.id },
+				data: {
+					subscriptionPlan: plan,
+					subscriptionStartDate: new Date(),
+					subscriptionEndDate: new Date(
+						new Date().setMonth(new Date().getMonth() + 1)
+					),
+					jobPostQuota: getPlanQuota(plan!),
+				},
+			});
+
+			console.log("User subscription updated successfully");
+
+			await prisma.payment.create({
+				data: {
+					user_id: user.id,
+					amount: transactionDetails.amount,
+					payment_method: "M-Pesa",
+					payment_status: "succeeded",
+					transactionId: transactionDetails.mpesaReceiptNumber,
+				},
+			});
+
+			console.log("Payment details saved successfully");
+
+			return res.status(200).json({
+				status: "success",
+				message:
+					"Payment processed, subscription plan updated, and payment details saved",
+			});
+		} else {
+			console.error("Payment failed:", stkCallback.ResultDesc);
+			return res.status(400).json({
+				status: "error",
+				message: stkCallback.ResultDesc,
+			});
+		}
+	} catch (error) {
+		console.error("Error handling M-Pesa callback:", error);
+		return res.status(500).json({
+			status: "error",
+			message: "Internal server error",
+		});
+	}
+};
+
+
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
 		Free_Trial: 3,
@@ -300,46 +410,67 @@ const getPlanQuota = (plan: string): number => {
 	};
 	return quotas[plan] || 0;
 };
-/* cron  "0 0 1 * *" means
- *   0 0 → Run at 00:00 (midnight)
- *   1 → On the first day of the month
- *   * * → Every month, every day of the week
- */
 
-cron.schedule("0 0 1 * *", async () => {
+
+cron.schedule("* * * * *", async () => {
+	console.log("Cron job running...");
 	try {
+		const currentTime = new Date();
 		const users = await prisma.user.findMany({
-			where: { subscriptionEndDate: { lte: new Date() } },
-		});
-const planDuration = {
-	Free_Trial: 0, 
-	Basic: 1, 
-	Pro: 1,
-	Enterprise: 12,
-};
-
- for (const user of users) {
-		const duration =
-			planDuration[user.subscriptionPlan as keyof typeof planDuration] ||
-			0;
-
-		if (duration > 0) {
-			const subscriptionEndDate = new Date();
-			subscriptionEndDate.setMonth(
-				subscriptionEndDate.getMonth() + duration
-			);
-
-			await prisma.user.update({
-				where: { id: user.id },
-				data: {
-					subscriptionStartDate: new Date(),
-					subscriptionEndDate,
-					jobPostQuota: getPlanQuota(user.subscriptionPlan), 
+			where: {
+				subscriptionEndDate: {
+					lte: currentTime, // Check if the subscription has ended
 				},
-			});
+			},
+		});
+
+		const planDuration = {
+			Free_Trial: 0,
+			Basic: 1,
+			Pro: 1,
+			Enterprise: 12,
+		};
+
+		for (const user of users) {
+			const duration =
+				planDuration[
+					user.subscriptionPlan as keyof typeof planDuration
+				] || 0;
+
+			if (user.subscriptionEndDate! <= currentTime) {
+				// If subscription is expired, set job post quota to 0
+				await prisma.user.update({
+					where: { id: user.id },
+					data: {
+						jobPostQuota: 0,
+					},
+				});
+				console.log(
+					`User ${user.id} quota set to 0 due to expired subscription`
+				);
+			} else if (duration > 0) {
+				// If the user still has a valid plan
+				const subscriptionEndDate = new Date();
+				subscriptionEndDate.setMonth(
+					subscriptionEndDate.getMonth() + duration
+				);
+
+				await prisma.user.update({
+					where: { id: user.id },
+					data: {
+						subscriptionStartDate: new Date(),
+						subscriptionEndDate,
+						jobPostQuota: getPlanQuota(user.subscriptionPlan),
+					},
+				});
+				console.log(
+					`User ${user.id}'s subscription renewed with updated quota`
+				);
+			}
 		}
- }
-		console.log("Cron job executed successfully: Subscriptions updated");
+		console.log(
+			`Cron job executed successfully: Subscriptions updated and quotas reset at ${new Date()}`
+		);
 	} catch (error) {
 		console.error("Error in subscription cron job:", error);
 	}
