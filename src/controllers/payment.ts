@@ -275,6 +275,14 @@ const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
 	return prices[currency];
 };
 
+const getUserId = (req: Request): string => {
+	const token = req.headers.authorization?.split(" ")[1];
+	if (!token) throw new Error("No token provided");
+	const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+	if (!decoded || typeof decoded !== 'object') throw new Error("Invalid token");
+	return decoded.id as string;
+}
+
 export const handleMpesaCallback = async (
 	req: Request,
 	res: Response,
