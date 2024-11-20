@@ -239,8 +239,7 @@ export const stkPush = async (
 			PartyA: phoneNumber,
 			PartyB: businessShortCode,
 			PhoneNumber: phoneNumber,
-			CallBackURL:
-				"https://cd9d-80-240-201-167.ngrok-free.app/subscription/callback",
+			CallBackURL: "https://e926-80-240-201-167.ngrok-free.app/subscription/callback",
 			AccountReference: "Medrin Jobs",
 			TransactionDesc: "Payment for a service",
 		};
@@ -266,7 +265,7 @@ export const stkPush = async (
 const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
 	Basic: { kes: 1, usd: 10 },
 	Pro: { kes: 1000, usd: 150 },
-	Enterprise: { kes: 3000, usd: 1000 },
+	Enterprise: { kes: 1, usd: 1000 },
 };
 
 const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
@@ -275,9 +274,9 @@ const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
 	return prices[currency];
 };
 
-const getUserId = (req: Request): string => {
+export const getUserId = (req: Request): string => {
 	const token = req.headers.authorization?.split(" ")[1];
-	if (!token) throw new Error("No token provided");
+	if (!token) throw new Error(`No token provided but you got this ${token}`);
 	const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
 	if (!decoded || typeof decoded !== 'object') throw new Error("Invalid token");
 	return decoded.id as string;
@@ -290,10 +289,20 @@ export const handleMpesaCallback = async (
 ) => {
 	try {
 		const callbackData = req.body;
+		console.log(req.headers.authorization);
+
+		if (!callbackData) {
+			console.error("No callback data received");
+			return res.status(400).json({
+				status: "error",
+				message: "No callback data received",
+			});
+		}
 
 		console.log("Callback Data:", callbackData);
 
-		const userId = "cm3ogu4ab0000waz4ucu8d8kg";
+		const userId = getUserId(req)
+
 
 		if (!userId) {
 			console.error("User ID not found");
@@ -414,7 +423,7 @@ const getPlanQuota = (plan: string): number => {
 	return quotas[plan] || 0;
 };
 
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
 	console.log("Cron job running...");
 	try {
 		const currentTime = new Date();
@@ -447,9 +456,7 @@ cron.schedule("* * * * *", async () => {
 						jobPostQuota: 0,
 					},
 				});
-				console.log(
-					`User ${user.id} quota set to 0 due to expired subscription`
-				);
+
 			} else if (duration > 0) {
 				const subscriptionEndDate = new Date();
 				subscriptionEndDate.setMonth(
@@ -464,14 +471,10 @@ cron.schedule("* * * * *", async () => {
 						jobPostQuota: getPlanQuota(user.subscriptionPlan),
 					},
 				});
-				console.log(
-					`User ${user.id}'s subscription renewed with updated quota`
-				);
+
 			}
 		}
-		console.log(
-			`Cron job executed successfully: Subscriptions updated and quotas reset at ${new Date()}`
-		);
+
 	} catch (error) {
 		console.error("Error in subscription cron job:", error);
 	}
