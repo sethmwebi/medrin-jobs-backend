@@ -298,7 +298,7 @@ export const stkPush = async (
 const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
 	Basic: { kes: 1, usd: 10 },
 	Pro: { kes: 1000, usd: 150 },
-	Enterprise: { kes: 1, usd: 1000 },
+	Enterprise: { kes: 2, usd: 1000 },
 };
 
 const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
@@ -390,7 +390,7 @@ export const handleMpesaCallback = async (
 			console.log("User subscription updated successfully");
 
 			const user = await prisma.user.findUnique({
-				where: { id: checkoutDetails.checkoutRequestID },
+				where: { mpesaReferenceId: checkoutDetails.checkoutRequestID },
 			});
 
 			if (!user) {
