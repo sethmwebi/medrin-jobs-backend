@@ -239,7 +239,8 @@ export const stkPush = async (
 			PartyA: phoneNumber,
 			PartyB: businessShortCode,
 			PhoneNumber: phoneNumber,
-			CallBackURL: "https://e926-80-240-201-167.ngrok-free.app/subscription/callback",
+			CallBackURL:
+				"https://medrin-jobs-backend-nn38.onrender.com/subscription/callback",
 			AccountReference: "Medrin Jobs",
 			TransactionDesc: "Payment for a service",
 		};
