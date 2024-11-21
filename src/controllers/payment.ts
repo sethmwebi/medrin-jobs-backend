@@ -225,24 +225,19 @@ export const stkPush = async (
 				.status(400)
 				.json({ error: "Phone number and plan are required." });
 		}
-				const token = req
-					.header("Authorization")
-					?.replace("Bearer ", "");
-				if (!token) {
-					throw createHttpError(401, "Authorization token required");
-				}
+		const token = req.header("Authorization")?.replace("Bearer ", "");
+		if (!token) {
+			throw createHttpError(401, "Authorization token required");
+		}
 
-				const decoded = jwt.decode(token) as { id?: string };
-				console.log("Decoded Token:", decoded);
+		const decoded = jwt.decode(token) as { id?: string };
+		console.log("Decoded Token:", decoded);
 
-				if (!decoded || !decoded.id) {
-					throw createHttpError(
-						401,
-						"Invalid or missing user ID in token"
-					);
-				}
+		if (!decoded || !decoded.id) {
+			throw createHttpError(401, "Invalid or missing user ID in token");
+		}
 
-				const userId = decoded.id;
+		const userId = decoded.id;
 
 		const accessToken = await generateAccessToken();
 
@@ -291,7 +286,7 @@ export const stkPush = async (
 			where: { id: userId },
 			data: {
 				mpesaReferenceId: response.data.CheckoutRequestID,
-			}
+			},
 		});
 		res.status(200).json(response.data);
 	} catch (error: any) {
@@ -434,7 +429,7 @@ export const handleMpesaCallback = async (
 	} catch (error: any) {
 		console.error(error);
 		return res.status(500).json({
-			error:error.message
+			error: error.message,
 		});
 	}
 };
@@ -475,7 +470,6 @@ cron.schedule("*/15 * * * *", async () => {
 				] || 0;
 
 			if (user.subscriptionEndDate! <= currentTime) {
-
 				await prisma.user.update({
 					where: { id: user.id },
 					data: {
