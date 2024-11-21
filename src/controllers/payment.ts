@@ -273,7 +273,7 @@ export const stkPush = async (
 			PhoneNumber: phoneNumber,
 			CallBackURL:
 				"https://medrin-jobs-backend-nn38.onrender.com/subscription/callback",
-			AccountReference: userId,
+			AccountReference: "Medrin Jobs",
 			TransactionDesc: "Payment for a service",
 		};
 
@@ -287,7 +287,12 @@ export const stkPush = async (
 				},
 			}
 		);
-
+		await prisma.user.update({
+			where: { id: userId },
+			data: {
+				mpesaReferenceId: response.data.CheckoutRequestID,
+			}
+		});
 		res.status(200).json(response.data);
 	} catch (error: any) {
 		console.error(error);
@@ -316,7 +321,7 @@ export const handleMpesaCallback = async (
 		console.log("handleMpesaCallback called");
 
 		const callbackData = req.body;
-		console.log("Callback Data:", callbackData);
+		console.log("callMetadata:", callbackData.callbackMetadata);
 
 		if (!callbackData) {
 			console.error("No callback data received");
@@ -333,6 +338,11 @@ export const handleMpesaCallback = async (
 			const metadata = stkCallback.CallbackMetadata.Item;
 			console.log("Metadata:", metadata);
 
+			const checkoutDetails = {
+				checkoutRequestID: stkCallback.find(
+					(item: any) => item.Name === "CheckoutRequestID"
+				)?.Value,
+			};
 			const transactionDetails = {
 				amount: metadata.find((item: any) => item.Name === "Amount")
 					?.Value,
@@ -345,17 +355,9 @@ export const handleMpesaCallback = async (
 				phoneNumber: metadata.find(
 					(item: any) => item.Name === "PhoneNumber"
 				)?.Value,
-				userId: stkCallback.AccountReference,
 			};
 
 			console.log("Payment successful:", transactionDetails);
-
-		const user = await prisma.user.findUnique({
-			where: { id: transactionDetails.userId },
-		});
-   if (!user) {
-		throw new Error("User not found");
-   }
 
 			let plan: string | undefined;
 			try {
@@ -380,7 +382,7 @@ export const handleMpesaCallback = async (
 			}
 
 			await prisma.user.update({
-				where: { id: user.id },
+				where: { id: checkoutDetails.checkoutRequestID },
 				data: {
 					subscriptionPlan: plan,
 					subscriptionStartDate: new Date(),
@@ -392,6 +394,14 @@ export const handleMpesaCallback = async (
 			});
 
 			console.log("User subscription updated successfully");
+
+			const user = await prisma.user.findUnique({
+				where: { id: checkoutDetails.checkoutRequestID },
+			});
+
+			if (!user) {
+				throw new Error("User not found");
+			}
 
 			await prisma.payment.create({
 				data: {
@@ -465,7 +475,7 @@ cron.schedule("*/15 * * * *", async () => {
 				] || 0;
 
 			if (user.subscriptionEndDate! <= currentTime) {
-				// If subscription is expired, set job post quota to 0
+
 				await prisma.user.update({
 					where: { id: user.id },
 					data: {
