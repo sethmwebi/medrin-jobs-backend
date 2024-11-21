@@ -27,7 +27,7 @@ const generateToken = (res: Response, user: UserPayload) => {
     httpOnly: true,
     secure: validEnv.NODE_ENV !== "development",
     sameSite: "strict",
-    maxAge: 15 * 60 * 1000, // 15 minutes
+    maxAge: 60 * 60 * 1000, // 15 minutes
   });
 
   // Set refresh token as an HTTP-only cookie

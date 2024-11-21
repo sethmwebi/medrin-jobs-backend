@@ -13,7 +13,7 @@ import cookieParser from "cookie-parser";
 import authRouter from "./routes/auth";
 import auth from "./middlewares/auth";
 import cors from "cors";
-
+import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { connectMongoDB } from "./config/database";
 
@@ -24,7 +24,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { Collection } from "mongoose";
 import axios from "axios";
 import { request } from "urllib";
-import { getUserId } from "./controllers/payment";
+// import { getUserId } from "./controllers/payment";
 
 export const MONGODB_DATABASE = process.env.MONGO_DATABASE;
 export const MONGODB_COLLECTION = process.env.MONGO_COLLECTION;
@@ -80,13 +80,29 @@ app.use("/", authRouter);
 app.use("/api/job", jobRoutes);
 
 app.get("/", (req, res) => {
-try {
-  res.send(getUserId(req));
-} catch (error: any) {
-  console.error(error);
-  res.status(500).json({ error:error.message });
-}
-  
+  try {
+    			const token = req
+					.header("Authorization")
+					?.replace("Bearer ", "");
+				if (!token) {
+					throw createHttpError(401, "Authorization token required");
+				}
+
+				const decoded = jwt.decode(token);
+				if (!decoded || typeof decoded !== "object" || !decoded.id) {
+					throw createHttpError(
+						401,
+						"Invalid or missing user ID in token"
+					);
+        }
+    const id =decoded.id;
+res.status(200).json({ id: id });
+    
+  } catch (error: any) {
+    console.error(error);
+    res.status(500).json({ error: error.message});
+  }
+
 });
 
 app.get("/protected", auth, (req, res, next) => {

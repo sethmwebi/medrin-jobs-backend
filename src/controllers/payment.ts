@@ -13,9 +13,23 @@ export const createPaymentIntent = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { id, amount } = req.body;
+	const { amount } = req.body;
 
 	try {
+		const token = req.header("Authorization")?.replace("Bearer ", "");
+		if (!token) {
+			throw createHttpError(401, "Authorization token required");
+		}
+
+		const decoded = jwt.decode(token) as { id?: string };
+		console.log("Decoded Token:", decoded);
+
+		if (!decoded || !decoded.id) {
+			throw createHttpError(401, "Invalid or missing user ID in token");
+		}
+
+		const id = decoded.id;
+
 		if (!id) {
 			return res.status(400).json({
 				error: `User ID is required here is your body ${req.body} and ${id}`,
@@ -275,14 +289,6 @@ const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
 	return prices[currency];
 };
 
-export const getUserId = (req: Request): string => {
-	const token = req.headers.authorization?.split(" ")[1];
-	if (!token) throw new Error(`No token provided but you got this ${token}`);
-	const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
-	if (!decoded || typeof decoded !== 'object') throw new Error("Invalid token");
-	return decoded.id as string;
-}
-
 export const handleMpesaCallback = async (
 	req: Request,
 	res: Response,
@@ -290,7 +296,6 @@ export const handleMpesaCallback = async (
 ) => {
 	try {
 		console.log("handleMpesaCallback called");
-
 
 		const callbackData = req.body;
 		console.log("Callback Data:", callbackData);
@@ -302,9 +307,19 @@ export const handleMpesaCallback = async (
 				message: "No callback data received",
 			});
 		}
-		const userId = getUserId(req);
-		console.log("User ID:", userId);
+		const token = req.header("Authorization")?.replace("Bearer ", "");
+		if (!token) {
+			throw createHttpError(401, "Authorization token required");
+		}
 
+		const decoded = jwt.decode(token) as { id?: string };
+		console.log("Decoded Token:", decoded);
+
+		if (!decoded || !decoded.id) {
+			throw createHttpError(401, "Invalid or missing user ID in token");
+		}
+
+		const userId = decoded.id;
 
 		if (!userId) {
 			console.error("User ID not found");
@@ -465,7 +480,6 @@ cron.schedule("*/15 * * * *", async () => {
 						jobPostQuota: 0,
 					},
 				});
-
 			} else if (duration > 0) {
 				const subscriptionEndDate = new Date();
 				subscriptionEndDate.setMonth(
@@ -480,10 +494,8 @@ cron.schedule("*/15 * * * *", async () => {
 						jobPostQuota: getPlanQuota(user.subscriptionPlan),
 					},
 				});
-
 			}
 		}
-
 	} catch (error) {
 		console.error("Error in subscription cron job:", error);
 	}
