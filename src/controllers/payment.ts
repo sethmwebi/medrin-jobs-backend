@@ -334,9 +334,8 @@ export const handleMpesaCallback = async (
 			console.log("Metadata:", metadata);
 
 			const checkoutDetails = {
-				checkoutRequestID: stkCallback.find(
-					(item: any) => item.Name === "CheckoutRequestID"
-				)?.Value,
+				checkoutRequestID: stkCallback.CheckoutRequestID,
+		
 			};
 			const transactionDetails = {
 				amount: metadata.find((item: any) => item.Name === "Amount")
