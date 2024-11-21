@@ -80,8 +80,13 @@ app.use("/", authRouter);
 app.use("/api/job", jobRoutes);
 
 app.get("/", (req, res) => {
-
+try {
   res.send(getUserId(req));
+} catch (error: any) {
+  console.error(error);
+  res.status(500).json({ error:error.message });
+}
+  
 });
 
 app.get("/protected", auth, (req, res, next) => {
