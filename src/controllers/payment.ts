@@ -40,7 +40,8 @@ export const createPaymentIntent = async (
 		console.error(error);
 		res.status(500).json({ error: error.message });
 	}
-};export const handlePaymentSuccess :RequestHandler = async (
+};
+export const handlePaymentSuccess: RequestHandler = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
@@ -129,17 +130,15 @@ export const createSubscription = async (
 			invoice_settings: { default_payment_method: paymentMethodId },
 		});
 
-		// Get the Stripe price ID for the selected plan ::f(x) for the plan is line 77
+		// Get the Stripe price ID for the selected plan ::f(x) for the plan is line 74
 		const planPriceId = getPriceId(plan);
 		if (!planPriceId) throw new Error("Invalid plan selected");
 
-		// Create the subscription
 		const subscription = await stripe.subscriptions.create({
 			customer: stripeCustomerId,
 			items: [{ price: planPriceId }],
 		});
 
-		// Update the user record in the database with subscription details
 		await prisma.user.update({
 			where: { id },
 			data: {
@@ -199,7 +198,6 @@ const generateAccessToken = async (): Promise<string> => {
 	return response.data.access_token;
 };
 
-
 export const stkPush = async (
 	req: Request,
 	res: Response,
@@ -241,8 +239,7 @@ export const stkPush = async (
 			PartyA: phoneNumber,
 			PartyB: businessShortCode,
 			PhoneNumber: phoneNumber,
-			CallBackURL:
-				"https://cd9d-80-240-201-167.ngrok-free.app/subscription/callback",
+			CallBackURL: "https://e926-80-240-201-167.ngrok-free.app/subscription/callback",
 			AccountReference: "Medrin Jobs",
 			TransactionDesc: "Payment for a service",
 		};
@@ -268,7 +265,7 @@ export const stkPush = async (
 const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
 	Basic: { kes: 1, usd: 10 },
 	Pro: { kes: 1000, usd: 150 },
-	Enterprise: { kes: 3000, usd: 1000 },
+	Enterprise: { kes: 1, usd: 1000 },
 };
 
 const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
@@ -277,6 +274,13 @@ const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
 	return prices[currency];
 };
 
+export const getUserId = (req: Request): string => {
+	const token = req.headers.authorization?.split(" ")[1];
+	if (!token) throw new Error(`No token provided but you got this ${token}`);
+	const decoded = jwt.verify(token, process.env.JWT_SECRET as string);
+	if (!decoded || typeof decoded !== 'object') throw new Error("Invalid token");
+	return decoded.id as string;
+}
 
 export const handleMpesaCallback = async (
 	req: Request,
@@ -284,12 +288,21 @@ export const handleMpesaCallback = async (
 	next: NextFunction
 ) => {
 	try {
-		// Assuming callback data is in the request body
 		const callbackData = req.body;
+		console.log(req.headers.authorization);
+
+		if (!callbackData) {
+			console.error("No callback data received");
+			return res.status(400).json({
+				status: "error",
+				message: "No callback data received",
+			});
+		}
 
 		console.log("Callback Data:", callbackData);
 
-		const userId = "cm3ogu4ab0000waz4ucu8d8kg"; // Replace with actual user ID extraction logic
+		const userId = getUserId(req)
+
 
 		if (!userId) {
 			console.error("User ID not found");
@@ -302,7 +315,6 @@ export const handleMpesaCallback = async (
 		const { stkCallback } = callbackData.Body;
 
 		if (stkCallback.ResultCode === 0) {
-			// Extract payment details
 			const metadata = stkCallback.CallbackMetadata.Item;
 			const transactionDetails = {
 				amount: metadata.find((item: any) => item.Name === "Amount")
@@ -320,7 +332,6 @@ export const handleMpesaCallback = async (
 
 			console.log("Payment successful:", transactionDetails);
 
-			// Assuming prisma is configured for database access
 			const user = await prisma.user.findUnique({
 				where: { id: userId },
 			});
@@ -333,21 +344,23 @@ export const handleMpesaCallback = async (
 				});
 			}
 
-      let plan: string | undefined;
-      try {
-        // Use the getPlanPrice function to determine the plan
-        if (transactionDetails.amount) {
-          const amountInKes = transactionDetails.amount; // Assuming the amount is in KES
-          for (const planName in subscriptionPrices) {
-            if (subscriptionPrices[planName].kes === amountInKes) {
-              plan = planName;
-              break;
-            }
-          }
-        }
+			let plan: string | undefined;
+			try {
+				// Use the getPlanPrice function to determine the plan
+				if (transactionDetails.amount) {
+					const amountInKes = transactionDetails.amount; // Assuming the amount is in KES
+					for (const planName in subscriptionPrices) {
+						if (subscriptionPrices[planName].kes === amountInKes) {
+							plan = planName;
+							break;
+						}
+					}
+				}
 
-        if (!plan) {
-          throw new Error("Invalid payment amount for subscription plan");
+				if (!plan) {
+					throw new Error(
+						"Invalid payment amount for subscription plan"
+					);
 				}
 			} catch (error) {
 				console.error("Error determining subscription plan:", error);
@@ -400,7 +413,6 @@ export const handleMpesaCallback = async (
 	}
 };
 
-
 const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
 		Free_Trial: 3,
@@ -411,15 +423,14 @@ const getPlanQuota = (plan: string): number => {
 	return quotas[plan] || 0;
 };
 
-
-cron.schedule("* * * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
 	console.log("Cron job running...");
 	try {
 		const currentTime = new Date();
 		const users = await prisma.user.findMany({
 			where: {
 				subscriptionEndDate: {
-					lte: currentTime, // Check if the subscription has ended
+					lte: currentTime,
 				},
 			},
 		});
@@ -445,11 +456,8 @@ cron.schedule("* * * * *", async () => {
 						jobPostQuota: 0,
 					},
 				});
-				console.log(
-					`User ${user.id} quota set to 0 due to expired subscription`
-				);
+
 			} else if (duration > 0) {
-				// If the user still has a valid plan
 				const subscriptionEndDate = new Date();
 				subscriptionEndDate.setMonth(
 					subscriptionEndDate.getMonth() + duration
@@ -463,14 +471,10 @@ cron.schedule("* * * * *", async () => {
 						jobPostQuota: getPlanQuota(user.subscriptionPlan),
 					},
 				});
-				console.log(
-					`User ${user.id}'s subscription renewed with updated quota`
-				);
+
 			}
 		}
-		console.log(
-			`Cron job executed successfully: Subscriptions updated and quotas reset at ${new Date()}`
-		);
+
 	} catch (error) {
 		console.error("Error in subscription cron job:", error);
 	}

@@ -24,6 +24,7 @@ import { errorHandler } from "./middlewares/errorHandler";
 import { Collection } from "mongoose";
 import axios from "axios";
 import { request } from "urllib";
+import { getUserId } from "./controllers/payment";
 
 export const MONGODB_DATABASE = process.env.MONGO_DATABASE;
 export const MONGODB_COLLECTION = process.env.MONGO_COLLECTION;
@@ -79,7 +80,8 @@ app.use("/", authRouter);
 app.use("/api/job", jobRoutes);
 
 app.get("/", (req, res) => {
-  res.status(200).json({ message: "Welcome to the API", token: req.headers['authorization'] });
+
+  res.send(getUserId(req));
 });
 
 app.get("/protected", auth, (req, res, next) => {
