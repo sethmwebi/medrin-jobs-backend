@@ -437,8 +437,8 @@ const getPlanQuota = (plan: string): number => {
 	const quotas: { [key: string]: number } = {
 		Free_Trial: 3,
 		Basic: 20,
-		Pro: Infinity,
-		Enterprise: Infinity,
+		Pro: -1,
+		Enterprise: -1,
 	};
 	return quotas[plan] || 0;
 };
