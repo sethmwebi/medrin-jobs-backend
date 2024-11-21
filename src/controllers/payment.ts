@@ -382,7 +382,7 @@ export const handleMpesaCallback = async (
 			}
 
 			await prisma.user.update({
-				where: { id: checkoutDetails.checkoutRequestID },
+				where: { mpesaReferenceId: checkoutDetails.checkoutRequestID },
 				data: {
 					subscriptionPlan: plan,
 					subscriptionStartDate: new Date(),

@@ -28,7 +28,7 @@ model User {
   subscriptionStartDate   DateTime?                    // Corresponds to subscription_start_date
   subscriptionEndDate     DateTime?                    // Corresponds to subscription_end_date
   stripeCustomerId        String?
-  mpesaReferenceId      String?
+  mpesaReferenceId      String?      @unique
   profile       Json?
   applications  Application[]
   payments      Payment[]
