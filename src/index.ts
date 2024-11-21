@@ -79,34 +79,29 @@ app.use("/", authRouter);
 
 app.use("/api/job", jobRoutes);
 
-app.get("/", (req, res) => {
-  try {
-    			const token = req
-					.header("Authorization")
-					?.replace("Bearer ", "");
-				if (!token) {
-					throw createHttpError(401, "Authorization token required");
-				}
 
-				const decoded = jwt.decode(token);
-				if (!decoded || typeof decoded !== "object" || !decoded.id) {
-					throw createHttpError(
-						401,
-						"Invalid or missing user ID in token"
-					);
-        }
-    const id =decoded.id;
-res.status(200).json({ id: id });
-    
-  } catch (error: any) {
-    console.error(error);
-    res.status(500).json({ error: error.message});
-  }
-
-});
 
 app.get("/protected", auth, (req, res, next) => {
   res.status(200).send("Protected route access granted!");
+});
+
+app.get("/", (req, res) => {
+	try {
+		const token = req.header("Authorization")?.replace("Bearer ", "");
+		if (!token) {
+			throw createHttpError(401, "Authorization token required");
+		}
+
+		const decoded = jwt.decode(token);
+		if (!decoded || typeof decoded !== "object" || !decoded.id) {
+			throw createHttpError(401, "Invalid or missing user ID in token");
+		}
+		const id = decoded.id;
+		res.status(200).json({ id: id });
+	} catch (error: any) {
+		console.error(error);
+		res.status(500).json({ error: error.message });
+	}
 });
 
 app.use((_, __, next) => {
