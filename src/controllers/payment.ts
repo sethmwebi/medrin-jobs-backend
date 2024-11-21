@@ -289,8 +289,11 @@ export const handleMpesaCallback = async (
 	next: NextFunction
 ) => {
 	try {
+		console.log("handleMpesaCallback called");
+
+
 		const callbackData = req.body;
-		console.log(req.headers.authorization);
+		console.log("Callback Data:", callbackData);
 
 		if (!callbackData) {
 			console.error("No callback data received");
@@ -299,10 +302,8 @@ export const handleMpesaCallback = async (
 				message: "No callback data received",
 			});
 		}
-
-		console.log("Callback Data:", callbackData);
-
-		const userId = getUserId(req)
+		const userId = getUserId(req);
+		console.log("User ID:", userId);
 
 
 		if (!userId) {
@@ -314,9 +315,12 @@ export const handleMpesaCallback = async (
 		}
 
 		const { stkCallback } = callbackData.Body;
+		console.log("STK Callback:", stkCallback);
 
 		if (stkCallback.ResultCode === 0) {
 			const metadata = stkCallback.CallbackMetadata.Item;
+			console.log("Metadata:", metadata);
+
 			const transactionDetails = {
 				amount: metadata.find((item: any) => item.Name === "Amount")
 					?.Value,
@@ -399,7 +403,11 @@ export const handleMpesaCallback = async (
 					"Payment processed, subscription plan updated, and payment details saved",
 			});
 		} else {
-			console.error("Payment failed:", stkCallback.ResultDesc);
+			console.error(
+				"Payment failed with result code:",
+				stkCallback.ResultCode
+			);
+			console.error("Result description:", stkCallback.ResultDesc);
 			return res.status(400).json({
 				status: "error",
 				message: stkCallback.ResultDesc,
