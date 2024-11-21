@@ -98,7 +98,7 @@ export const postJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 		const user = await prisma.user.findUnique({ where: { id } });
 		if (!user) throw new Error("User not found.Please Log in");
 
-		if (user.jobPostQuota <= 0) {
+		if (user.jobPostQuota === 0) {
 			throw new Error(
 				"Job post quota exceeded. Upgrade your subscription or pay for additional posts."
 			);
