@@ -225,6 +225,24 @@ export const stkPush = async (
 				.status(400)
 				.json({ error: "Phone number and plan are required." });
 		}
+				const token = req
+					.header("Authorization")
+					?.replace("Bearer ", "");
+				if (!token) {
+					throw createHttpError(401, "Authorization token required");
+				}
+
+				const decoded = jwt.decode(token) as { id?: string };
+				console.log("Decoded Token:", decoded);
+
+				if (!decoded || !decoded.id) {
+					throw createHttpError(
+						401,
+						"Invalid or missing user ID in token"
+					);
+				}
+
+				const userId = decoded.id;
 
 		const accessToken = await generateAccessToken();
 
@@ -255,7 +273,7 @@ export const stkPush = async (
 			PhoneNumber: phoneNumber,
 			CallBackURL:
 				"https://medrin-jobs-backend-nn38.onrender.com/subscription/callback",
-			AccountReference: "Medrin Jobs",
+			AccountReference: userId,
 			TransactionDesc: "Payment for a service",
 		};
 
@@ -307,27 +325,6 @@ export const handleMpesaCallback = async (
 				message: "No callback data received",
 			});
 		}
-		const token = req.header("Authorization")?.replace("Bearer ", "");
-		if (!token) {
-			throw createHttpError(401, "Authorization token required");
-		}
-
-		const decoded = jwt.decode(token) as { id?: string };
-		console.log("Decoded Token:", decoded);
-
-		if (!decoded || !decoded.id) {
-			throw createHttpError(401, "Invalid or missing user ID in token");
-		}
-
-		const userId = decoded.id;
-
-		if (!userId) {
-			console.error("User ID not found");
-			return res.status(400).json({
-				status: "error",
-				message: "User ID not found",
-			});
-		}
 
 		const { stkCallback } = callbackData.Body;
 		console.log("STK Callback:", stkCallback);
@@ -348,21 +345,17 @@ export const handleMpesaCallback = async (
 				phoneNumber: metadata.find(
 					(item: any) => item.Name === "PhoneNumber"
 				)?.Value,
+				userId: stkCallback.AccountReference,
 			};
 
 			console.log("Payment successful:", transactionDetails);
 
-			const user = await prisma.user.findUnique({
-				where: { id: userId },
-			});
-
-			if (!user) {
-				console.error("User not found for userId:", userId);
-				return res.status(404).json({
-					status: "error",
-					message: "User not found",
-				});
-			}
+		const user = await prisma.user.findUnique({
+			where: { id: transactionDetails.userId },
+		});
+   if (!user) {
+		throw new Error("User not found");
+   }
 
 			let plan: string | undefined;
 			try {
@@ -428,11 +421,10 @@ export const handleMpesaCallback = async (
 				message: stkCallback.ResultDesc,
 			});
 		}
-	} catch (error) {
-		console.error("Error handling M-Pesa callback:", error);
+	} catch (error: any) {
+		console.error(error);
 		return res.status(500).json({
-			status: "error",
-			message: "Internal server error",
+			error:error.message
 		});
 	}
 };
