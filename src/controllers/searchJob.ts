@@ -55,8 +55,6 @@ export const searchJobs = async (
 								query: searchQuery,
 								path: [
 									"title",
-									"description",
-									"location",
 									"company",
 									"category",
 								],
