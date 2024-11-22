@@ -64,7 +64,6 @@ export const register: RequestHandler = async (req, res, next) => {
 
     const {
       password: _,
-      role: __,
       createdAt,
       updatedAt,
       emailVerified,
@@ -147,7 +146,6 @@ export const login: RequestHandler = async (req, res, next) => {
 
     const {
       password: _,
-      role: __,
       createdAt,
       updatedAt,
       emailVerified,
