@@ -17,7 +17,6 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { connectMongoDB } from "./config/database";
 
-
 import jobRoutes from "./routes/job";
 import paymentRoutes from "./routes/payment";
 import { errorHandler } from "./middlewares/errorHandler";
@@ -47,17 +46,16 @@ const port = env.PORT;
 
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(
-	cors({
+  cors({
     origin: "http://localhost:5173",
-    credentials: true
-	})
+    credentials: true,
+  }),
 );
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
- 
-app.use("/job", jobRoutes);
-app.use('/subscription',paymentRoutes)
 
+app.use("/job", jobRoutes);
+app.use("/subscription", paymentRoutes);
 
 // app.use(helmet());
 // app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}))
@@ -72,37 +70,14 @@ app.use(cookieParser());
 app.use(passport.initialize());
 app.use(morgan("dev"));
 
-
 // Enable cors for http://localhost:5173
-
 
 app.use("/", authRouter);
 
 app.use("/api/job", jobRoutes);
 
-
-
 app.get("/protected", auth, (req, res, next) => {
   res.status(200).send("Protected route access granted!");
-});
-
-app.get("/", (req, res) => {
-	try {
-		const token = req.header("Authorization")?.replace("Bearer ", "");
-		if (!token) {
-			throw createHttpError(401, "Authorization token required");
-		}
-
-		const decoded = jwt.decode(token);
-		if (!decoded || typeof decoded !== "object" || !decoded.id) {
-			throw createHttpError(401, "Invalid or missing user ID in token");
-		}
-		const id = decoded.id;
-		res.status(200).json({ id: id });
-	} catch (error: any) {
-		console.error(error);
-		res.status(500).json({ error: error.message });
-	}
 });
 
 app.use((_, __, next) => {
@@ -239,7 +214,9 @@ connectMongoDB();
 (async () => {
   try {
     await prisma.$connect();
-    app.listen(port, () => console.log(`Server running on port http://127.0.0.1:${port}`));
+    app.listen(port, () =>
+      console.log(`Server running on port http://127.0.0.1:${port}`),
+    );
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
     process.exit(1);
