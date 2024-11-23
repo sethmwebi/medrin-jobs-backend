@@ -2,57 +2,66 @@
 import { count } from "console";
 import { InferSchemaType, model, Schema } from "mongoose";
 
-const jobSchema = new Schema({
-	user_id: {
-		type: String,
-		required: true,
-	},
-	title: {
-		type: String,
-		required: true,
-	},
-	description: {
-		type: String,
-		required: true,
-	},
-	category: {
-		type: String,
-		required: true,
-	},
-	location: {
-		type: String,
-		required: true,
-	},
-	salary:{
-		type: Number,
-		required: true,
-	},
-	workPlace_type: {
-		type: String,
-		required: true,
-	},
-	company: {
-		type: String,
-		required: true,
-	},
-	email: {
-		type: String,
-		required: true,
-	},
-	contact: {
-		type: String,
-		required: true,
-	},
-	createdAt: {
-		type: Date,
-		default: Date.now,
-	},
-	workTime: {
-		type: String,
-		required: true,
-	}
-});
+
+const jobSchema = new Schema(
+  {
+    user_id: {
+      type: String,
+      required: true,
+    },
+    title: {
+      type: String,
+      required: true,
+    },
+    description: {
+      type: String,
+      required: true,
+    },
+    category: {
+      type: String,
+      required: true,
+    },
+    location: {
+      type: String,
+      required: true,
+    },
+    employment_type: {
+      type: String,
+      required: true,
+    },
+    company: {
+      type: String,
+      required: true,
+    },
+    email: {
+      type: String,
+      required: true,
+      match: [/.+@.+\..+/, "Please provide a valid email address"],
+    },
+    contact: {
+      type: String,
+      required: true,
+      minlength: [10, "Contact number must be at least 10 digits"],
+      maxlength: [15, "Contact number cannot exceed 15 digits"],
+    },
+    salaryRange: {
+      type: {
+        min: { type: Number, required: true },
+        max: { type: Number, required: true },
+      },
+      required: true,
+    },
+    requirements: {
+      type: [String],
+      required: true,
+    },
+  },
+  {
+    timestamps: true,
+  }
+);
 
 type Job = InferSchemaType<typeof jobSchema>;
 
 export default model<Job>("Job", jobSchema);
+

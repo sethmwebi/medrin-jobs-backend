@@ -36,7 +36,7 @@ export const postJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	next
 ) => {
 	try {
-		if (!req.body.workPlace_type) {
+		if (!req.body.employment_type) {
 			throw createHttpError(400, "Work place type is required");
 		}
 		if (!req.body.title) {
@@ -51,37 +51,19 @@ export const postJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 		if (!req.body.location) {
 			throw createHttpError(400, "Location is required");
 		}
-		if (!req.body.company) {
-			throw createHttpError(400, "Company is required");
+
+
+		if (!req.body.requirements) {
+			throw createHttpError(400, "Requirements are required");
 		}
-		if (!req.body.email) {
-			throw createHttpError(400, "Email is required");
-		}
-		if (!req.body.contact) {
-			throw createHttpError(400, "Contact is required");
-		}
-		if (!req.body.workTime) {
-			throw createHttpError(400, "Work time is required");
-		}
-		if (req.body.salary < 0) {
-			throw createHttpError(400, "Salary cannot be negative");
-		}
-		if (
-			await JobModel.exists({
-				title: req.body.title,
-				company: req.body.company,
-				email: req.body.email,
-				contact: req.body.contact,
-				location: req.body.location,
-				salary: req.body.salary,
-				category: req.body.category,
-				description: req.body.description,
-				workPlace_type: req.body.workPlace_type,
-				workTime: req.body.workTime,
-			})
-		) {
-			throw createHttpError(400, "Job already exists");
-		}
+if (!req.body.salaryRange) {
+	throw createHttpError(400, "Salary range is required");
+}
+
+
+if (req.body.salaryRange.min > req.body.salaryRange.max) {
+	throw createHttpError(400, "Minimum salary cannot be greater than maximum salary");
+}
 
 		const token = req.header("Authorization")?.replace("Bearer ", "");
 		if (!token) {

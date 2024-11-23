@@ -1,19 +1,22 @@
 /** @format */
 
 export interface Job {
-	id:string;
-  title: string;
-  description: string;
-  category: string;
-  workPlace_type: string;
-  location: string;
-  salary: number;
-  company: string;
-  email: string;
-  contact: number;
-  workTime: string;
-  country?: string;
+	id: string;
+	title: string;
+	description: string;
+	category: string;
+	employment_type: string;
+	location: string;
+	company: string;
+	email: string;
+	contact: string;
+	requirements: string[];
+	salaryRange: {
+		min: number;
+		max: number;
+	};
 }
+
 export interface User {
   userId: string;
   fullName: string;

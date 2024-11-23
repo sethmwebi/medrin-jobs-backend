@@ -14,7 +14,7 @@ const generateToken = (res: Response, user: UserPayload) => {
 
   // Generate access token (shorter expiration)
   const accessToken = jwt.sign(payload, validEnv.JWT_SECRET, {
-    expiresIn: "15m",
+    expiresIn: "7d",
   });
 
   // Generate refresh token (longer expiration)
@@ -27,7 +27,7 @@ const generateToken = (res: Response, user: UserPayload) => {
     httpOnly: true,
     secure: validEnv.NODE_ENV !== "development",
     sameSite: "strict",
-    maxAge: 60 * 60 * 1000, // 15 minutes
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 
   // Set refresh token as an HTTP-only cookie
