@@ -76,8 +76,11 @@ app.use("/", authRouter);
 
 app.use("/api/job", jobRoutes);
 
-app.get("/protected", auth, (req, res, next) => {
-  res.status(200).send("Protected route access granted!");
+// app.get("/protected", auth, (req, res, next) => {
+//   res.status(200).send("Protected route access granted!");
+// });
+app.get("/", (req, res, next) => {
+  res.status(200).send("Medrin Jobs");
 });
 
 app.use((_, __, next) => {
