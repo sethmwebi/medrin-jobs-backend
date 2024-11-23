@@ -21,7 +21,7 @@ async function main() {
         createdAt: new Date(),
         updatedAt: new Date(),
         stripeCustomerId: faker.datatype.uuid(),
-        MpesaReferenceCRId: faker.datatype.uuid(),
+        MpesaReferenceId: faker.datatype.uuid(),
       },
     });
   }
