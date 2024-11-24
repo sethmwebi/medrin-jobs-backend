@@ -51,6 +51,13 @@ app.use(
     credentials: true,
   }),
 );
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(200); // End preflight request with 200
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
