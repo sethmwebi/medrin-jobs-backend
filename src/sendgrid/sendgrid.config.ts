@@ -18,7 +18,7 @@ sgMail.setApiKey(sendGridApiKey);
 
 // Default sender
 export const sender: Sender = {
-  email: 'nathan.mwai@student.moringaschool.com',
+  email: 'medrinjobsdev@gmail.com',
   name: 'Medrin Jobs',
 };
 
