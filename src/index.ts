@@ -47,12 +47,15 @@ const port = env.PORT;
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "https://medrin-jobs-frontend.vercel.app",
     credentials: true,
   }),
 );
 app.options("*", (req, res) => {
-  res.header("Access-Control-Allow-Origin", "http://localhost:5173");
+  res.header(
+    "Access-Control-Allow-Origin",
+    "https://medrin-jobs-frontend.vercel.app",
+  );
   res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
   res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
   res.header("Access-Control-Allow-Credentials", "true");
