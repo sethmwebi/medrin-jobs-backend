@@ -51,6 +51,7 @@ app.use(
     credentials: true,
   }),
 );
+app.use(cookieParser());
 app.options("*", (req, res) => {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
@@ -225,7 +226,7 @@ connectMongoDB();
   try {
     await prisma.$connect();
     app.listen(port, () =>
-      console.log(`Server running on https://medrin-jobs-backend.onrender.com`),
+      console.log(`Server running on http://127.0.0.1:${port}`),
     );
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
