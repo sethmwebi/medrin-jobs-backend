@@ -47,11 +47,18 @@ const port = env.PORT;
 export const prisma = new PrismaClient({ log: ["query"] });
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: "*",
     credentials: true,
   }),
 );
 app.use(cookieParser());
+app.options("*", (req, res) => {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Methods", "GET,POST,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.sendStatus(200); // End preflight request with 200
+});
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -219,7 +226,7 @@ connectMongoDB();
   try {
     await prisma.$connect();
     app.listen(port, () =>
-      console.log(`Server running on port http://127.0.0.1:${port}`),
+      console.log(`Server running on https://medrin-jobs-backend.onrender.com`),
     );
   } catch (error) {
     console.error("Error connecting to Prisma:", error);
