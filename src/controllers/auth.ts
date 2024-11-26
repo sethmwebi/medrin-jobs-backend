@@ -21,7 +21,7 @@ import { string } from "zod";
 export const register: RequestHandler = async (req, res, next) => {
   try {
     const result = RegisterSchema.parse(req.body);
-    const { email, password, name, provider = "credentials" } = result;
+    const { email, password, name, role, provider = "credentials" } = result;
 
     // For checking if all information is provided
     if (!email || !password || !name) {
@@ -46,7 +46,7 @@ export const register: RequestHandler = async (req, res, next) => {
         name,
         verificationToken,
         verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        role: "JOBSEEKER",
+        role,
         accounts: {
           create: {
             type: "local",
@@ -77,7 +77,7 @@ export const register: RequestHandler = async (req, res, next) => {
 
 export const verifyEmail = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   const { code } = req.body;
   try {
@@ -163,7 +163,7 @@ const handleOAuthCallback = (
   user: User | false,
   _: Request,
   res: Response,
-  next: NextFunction,
+  next: NextFunction
 ) => {
   if (err) {
     if (err.name === "TokenError") {
@@ -205,7 +205,7 @@ export const logout = async (req: Request, res: Response): Promise<void> => {
 
 export const forgotPassword = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   const { email } = req.body;
 
@@ -231,7 +231,7 @@ export const forgotPassword = async (
 
     await sendPasswordResetEmail(
       user.email,
-      `${process.env.CLIENT_URL}/reset-password/${resetToken}`,
+      `${process.env.CLIENT_URL}/reset-password/${resetToken}`
     );
 
     res.status(200).json({
@@ -246,7 +246,7 @@ export const forgotPassword = async (
 
 export const resetPassword = async (
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<void> => {
   try {
     const { token } = req.params;
