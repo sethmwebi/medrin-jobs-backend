@@ -8,13 +8,16 @@ import cron from "node-cron";
 import createHttpError from "http-errors";
 import { stringify } from "flatted";
 // Stripe
+
+
+
 export const createPaymentIntent = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { amount } = req.body;
-
+	const { amount,currency } = req.body;
+console.log(req.body);
 	try {
 		const token = req.header("Authorization")?.replace("Bearer ", "");
 		if (!token) {
@@ -39,11 +42,27 @@ export const createPaymentIntent = async (
 		const user = await prisma.user.findUnique({ where: { id: id } });
 
 		if (!user) throw new Error("User not found");
+		    let stripeCustomerId = user.stripeCustomerId;
+			if (!stripeCustomerId) {
+				const stripeCustomer = await stripe.customers.create({
+					email: user.email,
+					metadata: { userId: id },
+				});
+				stripeCustomerId = stripeCustomer.id;
+
+				// Save the Stripe Customer ID to the database
+				await prisma.user.update({
+					where: { id },
+					data: { stripeCustomerId },
+					
+				});
+			}
 
 		const paymentIntent = await stripe.paymentIntents.create({
 			amount: amount * 100,
 			currency: "usd",
 			metadata: { userId: id },
+			customer: stripeCustomerId
 		});
 
 		res.status(200).json({
@@ -60,12 +79,27 @@ export const handlePaymentSuccess: RequestHandler = async (
 	res: Response,
 	next: NextFunction
 ) => {
-	const { paymentIntentId } = req.body;
+	const { id } = req.body
+	
+
+	if (!id) {
+		return next(createHttpError(400, "Payment intent ID is required"));
+	}
+
 	try {
-		const paymentIntent = await stripe.paymentIntents.retrieve(
-			paymentIntentId
-		);
+		const paymentIntent = await stripe.paymentIntents.retrieve(id);
+
+		if (!paymentIntent) {
+			return next(createHttpError(404, "Payment intent not found"));
+		}
+
 		const { userId } = paymentIntent.metadata;
+
+		if (!userId) {
+			return next(
+				createHttpError(400, "User ID is required in payment intent metadata")
+			);
+		}
 
 		// Save payment details to the database
 		await prisma.payment.create({
@@ -79,7 +113,7 @@ export const handlePaymentSuccess: RequestHandler = async (
 		});
 
 		res.status(200).json({
-			message: "Payment successful",
+			message: "Payment intent was successfully acknowledged",
 		});
 	} catch (error) {
 		next(error);
@@ -95,12 +129,13 @@ const getPriceId = (plan: string): string => {
 	return priceIds[plan] || "";
 };
 
+
 export const createSubscription = async (
 	req: Request,
 	res: Response,
 	next: NextFunction
 ) => {
-	const { plan } = req.body;
+	const { plan, paymentMethodId } = req.body;
 
 	try {
 		const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -114,6 +149,8 @@ export const createSubscription = async (
 		}
 
 		const id = decoded.id;
+		console.log(token);
+
 
 		const user = await prisma.user.findUnique({ where: { id } });
 		if (!user) throw new Error("User not found");
@@ -123,18 +160,10 @@ export const createSubscription = async (
 		});
 
 		let stripeCustomerId = user.stripeCustomerId;
-		if (!stripeCustomerId) {
-			const stripeCustomer = await stripe.customers.create({
-				email: user.email,
-			});
-			stripeCustomerId = stripeCustomer.id;
-
-			await prisma.user.update({
-				where: { id },
-				data: { stripeCustomerId },
-			});
-		}
-		const paymentMethodId = "tok_visa";
+if (!stripeCustomerId) {
+	throw new Error("Stripe customer ID is not set");
+}
+	
 
 		await stripe.paymentMethods.attach(paymentMethodId, {
 			customer: stripeCustomerId,
@@ -144,13 +173,14 @@ export const createSubscription = async (
 			invoice_settings: { default_payment_method: paymentMethodId },
 		});
 
-		// Get the Stripe price ID for the selected plan ::f(x) for the plan is line 74
+		// Get the Stripe price ID for the selected plan ::f(x) for the plan is line 104
 		const planPriceId = getPriceId(plan);
 		if (!planPriceId) throw new Error("Invalid plan selected");
 
 		const subscription = await stripe.subscriptions.create({
 			customer: stripeCustomerId,
 			items: [{ price: planPriceId }],
+			expand: ["latest_invoice.payment_intent"],
 		});
 
 		await prisma.user.update({
@@ -218,9 +248,9 @@ export const stkPush = async (
 	next: NextFunction
 ) => {
 	try {
-		const { phoneNumber, plan } = req.body;
+		const { phoneNumber, planName } = req.body;
 
-		if (!phoneNumber || !plan) {
+		if (!phoneNumber || !planName) {
 			return res
 				.status(400)
 				.json({ error: "Phone number and plan are required." });
@@ -241,7 +271,7 @@ export const stkPush = async (
 
 		const accessToken = await generateAccessToken();
 
-		const amount = getPlanPrice(plan, "kes");
+		const amount = getPlanPrice(planName, "kes");
 
 		const businessShortCode = process.env.BUSINESS_SHORTCODE;
 		const passkey = process.env.PASSKEY;
@@ -297,8 +327,8 @@ export const stkPush = async (
 
 const subscriptionPrices: { [key: string]: { kes: number; usd: number } } = {
 	Basic: { kes: 1, usd: 10 },
-	Pro: { kes: 1000, usd: 150 },
-	Enterprise: { kes: 2, usd: 1000 },
+	Pro: { kes: 2, usd: 150 },
+	Enterprise: { kes: 3, usd: 1000 },
 };
 
 const getPlanPrice = (plan: string, currency: "kes" | "usd"): number => {
@@ -438,7 +468,7 @@ const getPlanQuota = (plan: string): number => {
 		Free_Trial: 3,
 		Basic: 20,
 		Pro: -1,
-		Enterprise: -1,
+		Enterprise: -1
 	};
 	return quotas[plan] || 0;
 };
