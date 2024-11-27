@@ -9,6 +9,7 @@ export const RegisterSchema = z
       .string()
       .min(6, { message: "Password should be atleast 6 characters long" }),
     confirmPassword: z.string(),
+    role: z.enum(["JOBSEEKER","EMPLOYER", "ADMIN", "SUPERADMIN"]).default("JOBSEEKER"),
   })
   .superRefine(({ confirmPassword, password }, ctx) => {
     if (confirmPassword !== password) {
