@@ -44,6 +44,12 @@ model User {
   Like                       Like[]
   Comment                    Comment[]
   SavedBlog                  SavedBlog[]
+  companyName                String?
+  companySize                String?
+  companyLocation            String?
+  companyWebsite             String?
+  industry                   String?
+  phoneNumber                String?
 
   @@map("users")
 }
