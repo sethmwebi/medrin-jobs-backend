@@ -36,8 +36,8 @@ export const postJob: RequestHandler<unknown, unknown, Job, unknown> = async (
 	next
 ) => {
 	try {
-		if (!req.body.employment_type) {
-			throw createHttpError(400, "Work place type is required");
+		if (!req.body.employmentType) {
+			throw createHttpError(400, "employment type is required");
 		}
 		if (!req.body.title) {
 			throw createHttpError(400, "Title is required");
@@ -94,6 +94,7 @@ if (req.body.salaryRange.min > req.body.salaryRange.max) {
 	} catch (error: any) {
 		console.error(error);
 		res.status(500).json({ error: error.message });
+		console.log(req.body);
 	}
 };
 
