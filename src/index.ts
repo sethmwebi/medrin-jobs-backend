@@ -17,7 +17,8 @@ import jwt from "jsonwebtoken";
 import "dotenv/config";
 import { connectMongoDB } from "./config/database";
 
-import jobRoutes from "./routes/job";
+import jobRoutes from "./routes/job"
+import employerUpdate from "./routes/employerUpdate"
 import paymentRoutes from "./routes/payment";
 import { errorHandler } from "./middlewares/errorHandler";
 import { Collection } from "mongoose";
@@ -64,6 +65,7 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use("/job", jobRoutes);
 app.use("/subscription", paymentRoutes);
+app.use("/employer", employerUpdate)
 
 // app.use(helmet());
 // app.use(helmet.crossOriginResourcePolicy({ policy: "cross-origin"}))
