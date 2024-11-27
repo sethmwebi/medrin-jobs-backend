@@ -5,16 +5,18 @@ export interface Job {
 	title: string;
 	description: string;
 	category: string;
-	employment_type: string;
+	employmentType: string;
 	location: string;
 	company: string;
-	email: string;
-	contact: string;
+
 	requirements: string[];
 	salaryRange: {
 		min: number;
 		max: number;
 	};
+	applicationDeadline: Date,
+	applicationInstructions: string,
+	requiredDocuments: []
 }
 
 export interface User {
