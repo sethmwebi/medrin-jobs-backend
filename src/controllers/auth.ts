@@ -21,7 +21,7 @@ import { string } from "zod";
 export const register: RequestHandler = async (req, res, next) => {
   try {
     const result = RegisterSchema.parse(req.body);
-    const { email, password, name, provider = "credentials" } = result;
+    const { email, password, name, provider = "credentials" ,role} = result;
 
     // For checking if all information is provided
     if (!email || !password || !name) {
@@ -46,7 +46,7 @@ export const register: RequestHandler = async (req, res, next) => {
         name,
         verificationToken,
         verificationTokenExpiresAt: new Date(Date.now() + 24 * 60 * 60 * 1000),
-        role: "JOBSEEKER",
+        role: role,
         accounts: {
           create: {
             type: "local",
