@@ -8,7 +8,6 @@ export interface Job {
 	employmentType: string;
 	location: string;
 	company: string;
-
 	requirements: string[];
 	salaryRange: {
 		min: number;
@@ -17,6 +16,7 @@ export interface Job {
 	applicationDeadline: Date,
 	applicationInstructions: string,
 	requiredDocuments: []
+	status: string;
 }
 
 export interface User {

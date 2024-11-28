@@ -61,8 +61,8 @@ if (!req.body.salaryRange) {
 }
 
 
-if (req.body.salaryRange.min > req.body.salaryRange.max) {
-	throw createHttpError(400, "Minimum salary cannot be greater than maximum salary");
+if (req.body.salaryRange.max - req.body.salaryRange.min <= 0) {
+	throw createHttpError(400, "Minimum salary cannot be greater than maximum salary or equal to it");
 }
 
 		const token = req.header("Authorization")?.replace("Bearer ", "");
@@ -85,7 +85,16 @@ if (req.body.salaryRange.min > req.body.salaryRange.max) {
 				"Job post quota exceeded. Upgrade your subscription or pay for additional posts."
 			);
 		}
-		const job = await JobModel.create({ ...req.body, user_id: id });
+
+		const jobData = {
+      ...req.body,         
+      user_id: id,     
+      email: user.email,   
+      contact: user.phoneNumber,
+      company: user.companyName,
+    };
+
+		const job = await JobModel.create(jobData);
 		await prisma.user.update({
 			where: { id },
 			data: { jobPostQuota: user.jobPostQuota - 1 },
@@ -106,12 +115,20 @@ if (req.body.salaryRange.min > req.body.salaryRange.max) {
 
  */
 export const getJobById: RequestHandler = async (req, res, next) => {
-	const { id } = req.params;
+
 	try {
-		if (!mongoose.isValidObjectId(id)) {
-			throw createHttpError(400, "Invalid job id");
-		}
-		const job = await JobModel.findById(id).exec();
+				const token = req
+					.header("Authorization")
+					?.replace("Bearer ", "");
+				if (!token) {
+					throw createHttpError(401, "Authorization token required");
+				}
+	const decoded = jwt.decode(token);
+	if (!decoded || typeof decoded !== "object" || !decoded.id) {
+		throw createHttpError(401, "Invalid or missing user ID in token");
+	}
+	const id = decoded.id;
+		const job = await JobModel.find().where({ user_id: id }).exec();
 		if (!job) {
 			throw createHttpError(404, "Job not found");
 		}

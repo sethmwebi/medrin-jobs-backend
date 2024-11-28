@@ -62,14 +62,9 @@ export const getUserProfile = async (req: Request, res: Response) => {
 			throw createHttpError(401, "Invalid or missing user ID in token");
 		}
 
-		const id = decoded.id;
-
-		if (!id) {
-			return res.status(400).json({
-				error: `User ID is required here is your body ${req.body} and ${id}`,
-			});
-		}
-    const user = await prisma.user.findUnique({ where: { id } });
+		const userId = decoded.id;
+   
+    const user = await prisma.user.findUnique({ where: { id:userId } });
     if (!user) {
       return res.status(404).json({ error: "User not found" });
     }
