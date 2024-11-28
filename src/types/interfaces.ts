@@ -15,24 +15,25 @@ export interface Job {
 		min: number;
 		max: number;
 	};
-	applicationDeadline: Date;
-	applicationInstructions: string;
-	requiredDocuments: [];
+	applicationDeadline: Date,
+	applicationInstructions: string,
+	requiredDocuments: []
 	status: string;
-	companySize: string;
-	companyLocation: string;
-	companyWebsite: string;
-	industry: string;
-	phoneNumber: string;
+	
 }
 
 export interface User {
-  userId: string;
-  fullName: string;
-  email: string;
-  avatar: string;
-  registeredAt: Date;
-  country: string;
+	userId: string;
+	fullName: string;
+	email: string;
+	registeredAt: Date;
+	country: string;
+	companyName:string
+	companySize:string
+	companyLocation:string
+	companyWebsite:string
+	industry:string
+	phoneNumber:string
 }
 export interface AuthenticatedRequest extends Request {
 	user: { id: string };
