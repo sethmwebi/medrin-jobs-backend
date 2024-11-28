@@ -26,14 +26,22 @@ export interface User {
 	userId: string;
 	fullName: string;
 	email: string;
-	registeredAt: Date;
-	country: string;
-	companyName:string
-	companySize:string
-	companyLocation:string
-	companyWebsite:string
-	industry:string
-	phoneNumber:string
+	id: string;
+	name: string | null;
+
+	emailVerified: Date | null;
+	image: string | null;
+	password: string;
+	
+	companyName?: string; // Add these fields
+	companySize?: string;
+	companyLocation?: string;
+	companyWebsite?: string;
+	industry?: string;
+	phoneNumber?: string;
+	jobPostQuota: number;
+	createdAt: Date;
+	updatedAt: Date;
 }
 export interface AuthenticatedRequest extends Request {
 	user: { id: string };

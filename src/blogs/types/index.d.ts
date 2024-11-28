@@ -11,12 +11,26 @@ export interface Blog {
   }
   
   export interface User {
-    id: string;
-    email: string;
-    name: string;
-    password: string;
-    role: 'USER' | 'ADMIN';
-    createdAt: Date;
-    updatedAt: Date;
+		id: string;
+		email: string;
+		name: string;
+		password: string;
+		role: "USER" | "ADMIN";
+		createdAt: Date;
+		updatedAt: Date;
+		email: string;
+		emailVerified: Date | null;
+		image: string | null;
+		password: string;
+		role: UserRole;
+		companyName?: string; // Add these fields
+		companySize?: string;
+		companyLocation?: string;
+		companyWebsite?: string;
+		industry?: string;
+		phoneNumber?: string;
+		jobPostQuota: number;
+		createdAt: Date;
+		updatedAt: Date;
   }
   
