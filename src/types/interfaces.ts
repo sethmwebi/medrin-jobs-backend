@@ -9,16 +9,21 @@ export interface Job {
 	category: string;
 	employmentType: string;
 	location: string;
-	company: string;
+	companyName: string;
 	requirements: string[];
 	salaryRange: {
 		min: number;
 		max: number;
 	};
-	applicationDeadline: Date,
-	applicationInstructions: string,
-	requiredDocuments: []
+	applicationDeadline: Date;
+	applicationInstructions: string;
+	requiredDocuments: [];
 	status: string;
+	companySize: string;
+	companyLocation: string;
+	companyWebsite: string;
+	industry: string;
+	phoneNumber: string;
 }
 
 export interface User {
