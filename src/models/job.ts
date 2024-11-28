@@ -2,12 +2,7 @@
 import { count } from "console";
 import { application } from "express";
 import { InferSchemaType, model, Schema } from "mongoose";
-enum JobStatus {
-	Draft = "draft",
-	Published = "published",
-	Expired = "expired",
-	Closed = "closed",
-}
+
 
 const jobSchema = new Schema(
 	{

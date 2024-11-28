@@ -1,5 +1,7 @@
 /** @format */
 
+import exp from "constants";
+
 export interface Job {
 	id: string;
 	title: string;
@@ -29,4 +31,16 @@ export interface User {
 }
 export interface AuthenticatedRequest extends Request {
 	user: { id: string };
+}
+
+export interface JobApplication {
+	jobSeeker_id: string;
+	jobSeeker_firstname: string;
+	jobSeeker_lastname: string;
+	jobSeeker_email: string;
+	jobSeeker_phone: string;
+	jobSeeker_country: string;
+	job_id: string;
+	employer_id: string;
+	applicationStatus: string;
 }
