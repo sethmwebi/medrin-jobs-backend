@@ -1,1 +1,73 @@
-node_modules
+# See https://help.github.com/en/articles/ignoring-files#create-a-gitignore-file
+# Ignore all log files as they can be reconstructed
+*.log
+
+# Ignore all lock files as they can be reconstructed
+package-lock.json
+yarn.lock
+
+# Ignore all dependencies as they can be installed with npm or yarn
+node_modules/
+
+# Ignore all IDE files
+*.iml
+.idea/
+.vscode/
+
+# Ignore all local environment files
+.env
+.env.local
+.env.development.local
+.env.production.local
+.env.test.local
+
+# Ignore all build files
+build/
+dist/
+
+# Ignore all cache files
+.npmrc
+.nyc_output/
+.cache/
+.parcel-cache/
+.thm/
+.thmrc
+.browserslistrc
+
+# Ignore all coverage files
+coverage/
+
+# Ignore all editor backup and session files
+*.swp
+._*
+.DS_Store
+.atom/
+.chezmoi/
+.c9/
+Composer.lock
+Desktop.ini
+DocSet$
+.DS_Store?
+.DS_Store
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.tmp
+.tmp
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.tmp
+.tmp
+
+# Ignore all local storage files
+firebase-debug.log
+firebase-debug.log
+
+# Ignore all module build files
+lib/
+lib-cov/
