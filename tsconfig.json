@@ -12,6 +12,16 @@
       "./node_modules/@types",
       "./src/types",
       "./@types"
+    ],
+    "types": [
+      "express",
+      "jsonwebtoken",
+      "http-errors",
+      "passport",
+      "cookie-parser",
+      "cors",
+      "morgan",
+      "node-cron"
     ]
   },
   "include": [
