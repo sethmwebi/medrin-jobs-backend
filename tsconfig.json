@@ -23,12 +23,5 @@
       "morgan",
       "node-cron"
     ]
-  },
-  "include": [
-    "src/**/*"
-  ],
-  "exclude": [
-    "node_modules",
-    "dist"
-  ]
+  }
 }
