@@ -1,27 +1,19 @@
 {
   "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "strict": true,
+    "esModuleInterop": true,
     "target": "ES6",
     "module": "commonjs",
-    "strict": true,
-    "rootDir": "./src",
-    "esModuleInterop": true,
-    "skipLibCheck": true,
-    "resolveJsonModule": true,
-    "outDir": "./dist",
-    "baseUrl": "./src",
     "typeRoots": [
       "node_modules/@types"
-    ],
-    "types": [
-      "node",
-      "express"
     ]
   },
   "include": [
-    "src/**/*.ts"
+    "src/**/*"
   ],
   "exclude": [
-    "node_modules",
-    "dist"
+    "node_modules"
   ]
 }
